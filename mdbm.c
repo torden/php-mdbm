@@ -57,6 +57,10 @@ static int php_info_print(const char *str) {
     return php_output_write(str, strlen(str) TSRMLS_CC);
 }
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_log_minlevel, 0, 0, 0)
+    ZEND_ARG_INFO(0, flags)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_open, 0, 0, 3)
     ZEND_ARG_INFO(0, filepath)
     ZEND_ARG_INFO(0, flags)
@@ -69,10 +73,19 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_close, 0, 0, 0)
     ZEND_ARG_INFO(0, pmdbm)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_store, 0, 0, 0)
+    ZEND_ARG_INFO(0, pmdbm)
+    ZEND_ARG_INFO(0, pkey)
+    ZEND_ARG_INFO(0, pval)
+    ZEND_ARG_INFO(0, flags)
+ZEND_END_ARG_INFO()
+
 static const zend_function_entry mdbm_functions[] = {
-	PHP_FE(mdbm_open,	arginfo_mdbm_open)
-	PHP_FE(mdbm_close,	arginfo_mdbm_close)
-	PHP_FE_END	/* Must be the last line in mdbm_functions[] */
+	PHP_FE(mdbm_log_minlevel,	arginfo_mdbm_log_minlevel)
+	PHP_FE(mdbm_open,	        arginfo_mdbm_open)
+	PHP_FE(mdbm_close,	        arginfo_mdbm_close)
+	PHP_FE(mdbm_store,	        arginfo_mdbm_store)
+	PHP_FE_END
 };
  
 zend_module_entry mdbm_module_entry = {
@@ -307,7 +320,7 @@ PHP_MINFO_FUNCTION(mdbm)
 
     php_info_print_table_start();
 	php_info_print_table_header(2, "mdbm support", "enable");
-    php_info_print_table_row(2, "Development", "torden <https://github.com/torden/php-mdbm>");
+    php_info_print_table_row(2, "Development", "Torden <https://github.com/torden/php-mdbm>");
     php_info_print_table_row(2, "Version (php-mdbm)", PHP_MDBM_VERSION);
     php_info_print_table_row(2, "Version (mdbm)", ver);
 	php_info_print_table_end();
@@ -321,6 +334,17 @@ PHP_MINFO_FUNCTION(mdbm)
 }
 /* }}} */
 
+PHP_FUNCTION(mdbm_log_minlevel) {
+
+    int flags = 0;
+
+    if(FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &flags)) {
+        RETURN_FALSE;
+    }
+
+    mdbm_log_minlevel(flags);
+    RETURN_TRUE;
+}
 
 PHP_FUNCTION(mdbm_open) {
 
@@ -348,7 +372,6 @@ PHP_FUNCTION(mdbm_open) {
     setenv("MDBM_LOG_LEVEL","0",1);      
 
     // open the mdbm
-    mdbm_log_minlevel(0);
     pmdbm = mdbm_open(pfilepath, flags, mode, size, resize);
     if (!pmdbm) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to open the mdbm");
@@ -367,13 +390,13 @@ PHP_FUNCTION(mdbm_close) {
     MDBM *pmdbm = NULL;
     int id = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|r", &mdbm_link_index) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
         RETURN_FALSE;
     }
 
     if (mdbm_link_index == NULL) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -383,6 +406,46 @@ PHP_FUNCTION(mdbm_close) {
         zend_list_delete(Z_RESVAL_P(mdbm_link_index));
     } else {
         zend_list_delete(id);
+    }
+
+    RETURN_TRUE;
+}
+
+PHP_FUNCTION(mdbm_store) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+
+    int rv = -1;
+    char *pkey = NULL;
+    int key_len = 0;
+    char *pval = NULL;
+    int val_len = 0;
+    int flags = MDBM_INSERT;
+    datum key, val;
+
+    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss|l", &mdbm_link_index, &pkey, &key_len, &pval, &val_len, &flags) == FAILURE) {
+        RETURN_FALSE;
+    }
+
+    if (mdbm_link_index == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    // get the mdbm link
+    ZEND_FETCH_RESOURCE(mdbm_link, MDBM*, &mdbm_link_index, id, "the mdbm link", le_link);
+
+    // make a datum
+    key.dptr = pkey;
+    key.dsize = key_len;
+    val.dptr = pval;
+    val.dsize = val_len;
+
+    rv = mdbm_store(mdbm_link->pmdbm, key, val, flags);
+    if(rv == -1) {
+        RETURN_FALSE;
     }
 
     RETURN_TRUE;

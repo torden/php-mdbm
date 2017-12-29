@@ -2,6 +2,15 @@
 <?php
 
 $db = mdbm_open("/tmp/test1.mdbm", MDBM_O_RDWR|MDBM_O_CREAT|MDBM_LARGE_OBJECTS|MDBM_O_TRUNC|MDBM_ANY_LOCKS, 0666, 0,0);
+echo "\n-------------------------\n";
+echo "store: ";
+
+for($i=0;$i<100;$i++) {
+    $rv = mdbm_store($db, (string)$i, (string)$i);
+    echo "store::rv : ";
+    echo (int)$rv;
+    echo "\n";
+}
 
 echo "\n-------------------------\n";
 echo "db : ";

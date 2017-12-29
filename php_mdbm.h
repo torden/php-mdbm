@@ -44,8 +44,10 @@ PHP_RINIT_FUNCTION(mdbm);
 PHP_RSHUTDOWN_FUNCTION(mdbm);
 PHP_MINFO_FUNCTION(mdbm);
 
+PHP_FUNCTION(mdbm_log_minlevel);
 PHP_FUNCTION(mdbm_open);
 PHP_FUNCTION(mdbm_close);
+PHP_FUNCTION(mdbm_store);
 
 /* 
   	Declare any global variables you may need between the BEGIN
