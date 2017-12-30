@@ -47,7 +47,22 @@ PHP_MINFO_FUNCTION(mdbm);
 PHP_FUNCTION(mdbm_log_minlevel);
 PHP_FUNCTION(mdbm_open);
 PHP_FUNCTION(mdbm_close);
+PHP_FUNCTION(mdbm_sync);
+PHP_FUNCTION(mdbm_fsync);
+PHP_FUNCTION(mdbm_lock);
+PHP_FUNCTION(mdbm_unlock);
+PHP_FUNCTION(mdbm_preload);
+PHP_FUNCTION(mdbm_get_errno);
+PHP_FUNCTION(mdbm_get_version);
+PHP_FUNCTION(mdbm_get_size);
+PHP_FUNCTION(mdbm_get_page_size);
+PHP_FUNCTION(mdbm_set_hash);
+PHP_FUNCTION(mdbm_get_hash);
+PHP_FUNCTION(mdbm_get_limit_size);
+
 PHP_FUNCTION(mdbm_store);
+PHP_FUNCTION(mdbm_fetch);
+PHP_FUNCTION(mdbm_delete);
 
 /* 
   	Declare any global variables you may need between the BEGIN

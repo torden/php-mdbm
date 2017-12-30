@@ -33,23 +33,23 @@
 
 #include "php_mdbm.h"
 
-//ZEND_DECLARE_MODULE_GLOBALS(mdbm)
+ZEND_DECLARE_MODULE_GLOBALS(mdbm)
 
 typedef struct _php_mdbm_open {
-	MDBM *pmdbm;
+    MDBM *pmdbm;
 } php_mdbm_open;
 
 static int le_link;
 
 static void _close_mdbm_link(zend_rsrc_list_entry *rsrc TSRMLS_DC) {
 
-	php_mdbm_open *link = (php_mdbm_open *)rsrc->ptr;
-	void (*handler) (int);
+    php_mdbm_open *link = (php_mdbm_open *)rsrc->ptr;
+    void (*handler) (int);
 
-	handler = signal(SIGPIPE, SIG_IGN);
-	mdbm_close(link->pmdbm);
-	signal(SIGPIPE, handler);
-	free(link);
+    handler = signal(SIGPIPE, SIG_IGN);
+    mdbm_close(link->pmdbm);
+    signal(SIGPIPE, handler);
+    efree(link);
 }
 
 static int php_info_print(const char *str) {
@@ -57,7 +57,7 @@ static int php_info_print(const char *str) {
     return php_output_write(str, strlen(str) TSRMLS_CC);
 }
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_log_minlevel, 0, 0, 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_log_minlevel, 0, 0, 1)
     ZEND_ARG_INFO(0, flags)
 ZEND_END_ARG_INFO()
 
@@ -69,40 +69,65 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_open, 0, 0, 3)
     ZEND_ARG_INFO(0, presize)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_close, 0, 0, 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_opened_res, 0, 0, 1)
     ZEND_ARG_INFO(0, pmdbm)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_store, 0, 0, 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_pmdbm_flags, 0, 0, 2)
+    ZEND_ARG_INFO(0, pmdbm)
+    ZEND_ARG_INFO(0, flags)
+ZEND_END_ARG_INFO()
+
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_store, 0, 0, 3)
     ZEND_ARG_INFO(0, pmdbm)
     ZEND_ARG_INFO(0, pkey)
     ZEND_ARG_INFO(0, pval)
     ZEND_ARG_INFO(0, flags)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_key, 0, 0, 2)
+    ZEND_ARG_INFO(0, pmdbm)
+    ZEND_ARG_INFO(0, pkey)
+ZEND_END_ARG_INFO()
+
 static const zend_function_entry mdbm_functions[] = {
-	PHP_FE(mdbm_log_minlevel,	arginfo_mdbm_log_minlevel)
-	PHP_FE(mdbm_open,	        arginfo_mdbm_open)
-	PHP_FE(mdbm_close,	        arginfo_mdbm_close)
-	PHP_FE(mdbm_store,	        arginfo_mdbm_store)
-	PHP_FE_END
+    PHP_FE(mdbm_log_minlevel,           arginfo_mdbm_log_minlevel)
+    PHP_FE(mdbm_open,                   arginfo_mdbm_open)
+    PHP_FE(mdbm_close,                  arginfo_mdbm_opened_res)
+    PHP_FE(mdbm_sync,                   arginfo_mdbm_opened_res)
+    PHP_FE(mdbm_fsync,                  arginfo_mdbm_opened_res)
+    PHP_FE(mdbm_lock,                   arginfo_mdbm_opened_res)
+    PHP_FE(mdbm_unlock,                 arginfo_mdbm_opened_res)
+    PHP_FE(mdbm_preload,                arginfo_mdbm_opened_res)
+    PHP_FE(mdbm_get_errno,              arginfo_mdbm_opened_res)
+    PHP_FE(mdbm_get_version,            arginfo_mdbm_opened_res)
+    PHP_FE(mdbm_get_size,               arginfo_mdbm_opened_res)
+    PHP_FE(mdbm_get_page_size,          arginfo_mdbm_opened_res)
+    PHP_FE(mdbm_set_hash,               arginfo_mdbm_pmdbm_flags)
+    PHP_FE(mdbm_get_hash,               arginfo_mdbm_opened_res)
+    PHP_FE(mdbm_get_limit_size,         arginfo_mdbm_opened_res)
+    PHP_FE(mdbm_store,                  arginfo_mdbm_store)
+    PHP_FE(mdbm_fetch,                  arginfo_mdbm_key)
+    PHP_FE(mdbm_delete,                 arginfo_mdbm_key)
+    PHP_FE_END
 };
  
 zend_module_entry mdbm_module_entry = {
 #if ZEND_MODULE_API_NO >= 20010901
-	STANDARD_MODULE_HEADER,
+    STANDARD_MODULE_HEADER,
 #endif
-	"mdbm",
-	mdbm_functions,
-	PHP_MINIT(mdbm),
-	PHP_MSHUTDOWN(mdbm),
-	PHP_RINIT(mdbm),		/* Replace with NULL if there's nothing to do at request start */
-	PHP_RSHUTDOWN(mdbm),	/* Replace with NULL if there's nothing to do at request end */
-	PHP_MINFO(mdbm),
+    "mdbm",
+    mdbm_functions,
+    PHP_MINIT(mdbm),
+    PHP_MSHUTDOWN(mdbm),
+    PHP_RINIT(mdbm),        /* Replace with NULL if there's nothing to do at request start */
+    PHP_RSHUTDOWN(mdbm),    /* Replace with NULL if there's nothing to do at request end */
+    PHP_MINFO(mdbm),
 #if ZEND_MODULE_API_NO >= 20010901
-	PHP_MDBM_VERSION,
+    PHP_MDBM_VERSION,
 #endif
-	STANDARD_MODULE_PROPERTIES
+    STANDARD_MODULE_PROPERTIES
 };
 /* }}} */
 
@@ -125,8 +150,8 @@ PHP_INI_END()
 /* Uncomment this function if you have INI entries
 static void php_mdbm_init_globals(zend_mdbm_globals *mdbm_globals)
 {
-	mdbm_globals->global_value = 0;
-	mdbm_globals->global_string = NULL;
+    mdbm_globals->global_value = 0;
+    mdbm_globals->global_string = NULL;
 }
 */
 /* }}} */
@@ -136,9 +161,9 @@ static void php_mdbm_init_globals(zend_mdbm_globals *mdbm_globals)
 ZEND_MODULE_STARTUP_D(mdbm)
 {
 
-	//REGISTER_INI_ENTRIES();
+    //REGISTER_INI_ENTRIES();
 
-	le_link = zend_register_list_destructors_ex(_close_mdbm_link, NULL, "mdbm link", module_number);
+    le_link = zend_register_list_destructors_ex(_close_mdbm_link, NULL, "mdbm-link", module_number);
 
     REGISTER_MDBM_CONSTANT(MDBM_KEYLEN_MAX);
     REGISTER_MDBM_CONSTANT(MDBM_VALLEN_MAX);
@@ -278,7 +303,7 @@ ZEND_MODULE_STARTUP_D(mdbm)
     REGISTER_MDBM_CONSTANT(MDBM_MAX_HASH);
     REGISTER_MDBM_CONSTANT(MDBM_CONFIG_DEFAULT_HASH);
 
-	return SUCCESS;
+    return SUCCESS;
 }
 /* }}} */
 
@@ -286,8 +311,8 @@ ZEND_MODULE_STARTUP_D(mdbm)
  */
 PHP_MSHUTDOWN_FUNCTION(mdbm)
 {
-	UNREGISTER_INI_ENTRIES();
-	return SUCCESS;
+    UNREGISTER_INI_ENTRIES();
+    return SUCCESS;
 }
 /* }}} */
 
@@ -296,7 +321,7 @@ PHP_MSHUTDOWN_FUNCTION(mdbm)
  */
 PHP_RINIT_FUNCTION(mdbm)
 {
-	return SUCCESS;
+    return SUCCESS;
 }
 /* }}} */
 
@@ -305,7 +330,7 @@ PHP_RINIT_FUNCTION(mdbm)
  */
 PHP_RSHUTDOWN_FUNCTION(mdbm)
 {
-	return SUCCESS;
+    return SUCCESS;
 }
 /* }}} */
 
@@ -316,21 +341,21 @@ PHP_MINFO_FUNCTION(mdbm)
 
     char ver[12] = {0x00,};
 
-	snprintf(ver, sizeof(ver), "%d", MDBM_API_VERSION);
+    snprintf(ver, sizeof(ver), "%d", MDBM_API_VERSION);
 
     php_info_print_table_start();
-	php_info_print_table_header(2, "mdbm support", "enable");
+    php_info_print_table_header(2, "mdbm support", "enable");
     php_info_print_table_row(2, "Development", "Torden <https://github.com/torden/php-mdbm>");
     php_info_print_table_row(2, "Version (php-mdbm)", PHP_MDBM_VERSION);
     php_info_print_table_row(2, "Version (mdbm)", ver);
-	php_info_print_table_end();
+    php_info_print_table_end();
 /*
     php_info_print_box_start(0);
     php_info_print("' style='float:none'>");
     php_info_print_box_end();
 */
 
-	DISPLAY_INI_ENTRIES();
+    DISPLAY_INI_ENTRIES();
 }
 /* }}} */
 
@@ -361,17 +386,17 @@ PHP_FUNCTION(mdbm_open) {
         RETURN_FALSE;
     }
 
-    // create the link
-    mdbm_link = (php_mdbm_open *) malloc(sizeof(php_mdbm_open));
+    //create the link
+    mdbm_link = (php_mdbm_open *) safe_emalloc(sizeof(php_mdbm_open), 1, 0);
     if (!mdbm_link) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory for a MDBM Resource link");
     }
 
-    // disable the log to stderr
+    //disable the log to stderr
     mdbm_log_minlevel(0);
     setenv("MDBM_LOG_LEVEL","0",1);      
 
-    // open the mdbm
+    //open the mdbm
     pmdbm = mdbm_open(pfilepath, flags, mode, size, resize);
     if (!pmdbm) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to open the mdbm");
@@ -387,7 +412,7 @@ PHP_FUNCTION(mdbm_open) {
 PHP_FUNCTION(mdbm_close) {
 
     zval *mdbm_link_index = NULL;
-    MDBM *pmdbm = NULL;
+    php_mdbm_open *mdbm_link = NULL;
     int id = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
@@ -400,7 +425,7 @@ PHP_FUNCTION(mdbm_close) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(pmdbm, MDBM*, &mdbm_link_index, id, "the mdbm link", le_link);
+    ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
 
     if (mdbm_link_index) {
         zend_list_delete(Z_RESVAL_P(mdbm_link_index));
@@ -409,6 +434,328 @@ PHP_FUNCTION(mdbm_close) {
     }
 
     RETURN_TRUE;
+}
+
+PHP_FUNCTION(mdbm_sync) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (mdbm_link_index == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //get mdbm link
+    ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
+
+    rv = mdbm_sync(mdbm_link->pmdbm);
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
+}
+
+PHP_FUNCTION(mdbm_fsync) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (mdbm_link_index == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //get mdbm link
+    ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
+
+    rv = mdbm_fsync(mdbm_link->pmdbm);
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
+}
+
+PHP_FUNCTION(mdbm_lock) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (mdbm_link_index == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //get mdbm link
+    ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
+
+    rv = mdbm_lock(mdbm_link->pmdbm);
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
+}
+
+PHP_FUNCTION(mdbm_unlock) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (mdbm_link_index == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //get mdbm link
+    ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
+
+    rv = mdbm_unlock(mdbm_link->pmdbm);
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
+}
+
+PHP_FUNCTION(mdbm_preload) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (mdbm_link_index == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //get mdbm link
+    ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
+
+    rv = mdbm_preload(mdbm_link->pmdbm);
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
+}
+
+PHP_FUNCTION(mdbm_get_errno) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (mdbm_link_index == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //get mdbm link
+    ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
+
+    rv = mdbm_get_errno(mdbm_link->pmdbm);
+    RETURN_LONG(rv);
+}
+
+PHP_FUNCTION(mdbm_get_version) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    uint32_t rv = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (mdbm_link_index == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //get mdbm link
+    ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
+
+    rv = mdbm_get_version(mdbm_link->pmdbm);
+    RETURN_LONG(rv);
+}
+
+
+PHP_FUNCTION(mdbm_get_size) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    uint64_t rv = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (mdbm_link_index == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //get mdbm link
+    ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
+
+    rv = mdbm_get_size(mdbm_link->pmdbm);
+    RETURN_LONG(rv);
+}
+
+PHP_FUNCTION(mdbm_get_page_size) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (mdbm_link_index == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //get mdbm link
+    ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
+
+    rv = mdbm_get_page_size(mdbm_link->pmdbm);
+    RETURN_LONG(rv);
+}
+
+PHP_FUNCTION(mdbm_get_hash) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (mdbm_link_index == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //get mdbm link
+    ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
+
+    rv = mdbm_get_hash(mdbm_link->pmdbm);
+
+    RETURN_LONG(rv);
+}
+
+PHP_FUNCTION(mdbm_set_hash) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    long hash = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &hash) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (mdbm_link_index == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (hash < MDBM_HASH_CRC32 || hash > MDBM_MAX_HASH) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "mdbm_set_hash does not support hash(=%ld)", hash);
+        RETURN_FALSE;
+    }
+
+    //get mdbm link
+    ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
+
+    rv = mdbm_set_hash(mdbm_link->pmdbm, (int)hash);
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
+}
+
+PHP_FUNCTION(mdbm_get_limit_size) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (mdbm_link_index == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //get mdbm link
+    ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
+
+    rv = mdbm_get_limit_size(mdbm_link->pmdbm);
+
+    RETURN_LONG(rv);
 }
 
 PHP_FUNCTION(mdbm_store) {
@@ -434,10 +781,10 @@ PHP_FUNCTION(mdbm_store) {
         RETURN_FALSE;
     }
 
-    // get the mdbm link
-    ZEND_FETCH_RESOURCE(mdbm_link, MDBM*, &mdbm_link_index, id, "the mdbm link", le_link);
+    //get mdbm link
+    ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
 
-    // make a datum
+    //make a datum
     key.dptr = pkey;
     key.dsize = key_len;
     val.dptr = pval;
@@ -451,6 +798,97 @@ PHP_FUNCTION(mdbm_store) {
     RETURN_TRUE;
 }
 
+PHP_FUNCTION(mdbm_fetch) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+    datum key, val;
+
+    char *pkey = NULL;
+    int key_len = 0;
+
+    char *pretval = NULL;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (mdbm_link_index == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //get mdbm link
+    ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
+
+    //make a datum
+    key.dptr = pkey;
+    key.dsize = key_len;
+
+    val = mdbm_fetch(mdbm_link->pmdbm, key);
+    if (val.dptr == NULL) {
+        RETURN_FALSE;
+    }
+
+    //for fix "Warning: String is not zero-terminated" issue aftre ran mdbm_preload
+    pretval = (char *) safe_emalloc(sizeof(char *), val.dsize+2, 0);
+    if (pretval == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "unable to allocate");
+        RETURN_FALSE;
+    }
+
+    memset(pretval, 0x00, val.dsize+2);
+
+    //copy
+    strncpy(pretval, val.dptr, val.dsize);
+    if (pretval == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "strncpy failed");
+        RETURN_FALSE;
+    }
+
+    RETURN_STRINGL(pretval, val.dsize+1, 0);
+}
+
+PHP_FUNCTION(mdbm_delete) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+    datum key;
+
+    char *pkey = NULL;
+    int key_len = 0;
+
+    char *pretval = NULL;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (mdbm_link_index == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //get mdbm link
+    ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
+
+    //make a datum
+    key.dptr = pkey;
+    key.dsize = key_len;
+
+    rv = mdbm_delete(mdbm_link->pmdbm, key);
+    if(rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
+}
 
 /*
  * Local variables:
