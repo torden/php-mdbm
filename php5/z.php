@@ -28,12 +28,15 @@ for($i=0;$i<10;$i++) {
 
     printf("%s\n", str_repeat("-",80));
     printf("[*] mdbm_lock : %d\n", mdbm_lock($db));
+    printf("[*] mdbm_islocked : %d\n", (int)mdbm_islocked($db));
 
     $rv = mdbm_store($db, $i, $v);
     printf("[*] store(%d,%d)::rv=%d\n", $i, $v,rv);
 
     printf("[*] mdbm_unlock : %d\n", mdbm_unlock($db));
 }
+
+printf("[*] mdbm_islocked : %d\n", (int)mdbm_islocked($db));
 
 
 printf("[*] mdbm_fetch(2) : %s\n", mdbm_fetch($db, 2));
@@ -63,8 +66,22 @@ printf("[*] mdbm_get_size : %d\n", mdbm_get_size($db2));
 printf("[*] mdbm_get_page_size : %d\n", mdbm_get_page_size($db2));
 printf("[*] mdbm_get_hash : %d\n", mdbm_get_hash($db2));
 
+printf("[*] mdbm_first : %s\n", print_r(mdbm_first($db2), true));
+printf("[*] mdbm_next: %s\n", print_r(mdbm_next($db2), true));
+printf("[*] mdbm_firstkey: %s\n", print_r(mdbm_firstkey($db2), true));
+printf("[*] mdbm_nextkey: %s\n", print_r(mdbm_nextkey($db2), true));
+printf("[*] mdbm_nextkey: %s\n", print_r(mdbm_nextkey($db2), true));
+printf("[*] mdbm_nextkey: %s\n", print_r(mdbm_nextkey($db2), true));
+printf("[*] mdbm_count_records : %d\n", mdbm_count_records($db2));
+
+$db3 = mdbm_open("/tmp/test1.mdbm", MDBM_O_RDWR, 0666, 0,0);
+mdbm_truncate($db3);
 
 printf("[*] mdbm_close : %d\n", mdbm_close($db2));
+printf("[*] mdbm_close : %d\n", mdbm_close($db3));
+
+printf("[*] mdbm_lock_reset : %d\n", (int)mdbm_lock_reset("/tmp/test1.mdbm"));
+printf("[*] mdbm_delete_lockfiles : %d\n", (int)mdbm_delete_lockfiles("/tmp/test1.mdbm"));
 
 echo "\n\n";
 ?>
