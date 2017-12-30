@@ -53,3 +53,6 @@ dkms.conf
 
 run.sh
 z.php
+.*.swp
+*.swp
+*.bak
