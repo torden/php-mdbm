@@ -121,8 +121,8 @@ zend_module_entry mdbm_module_entry = {
     mdbm_functions,
     PHP_MINIT(mdbm),
     PHP_MSHUTDOWN(mdbm),
-    PHP_RINIT(mdbm),        /* Replace with NULL if there's nothing to do at request start */
-    PHP_RSHUTDOWN(mdbm),    /* Replace with NULL if there's nothing to do at request end */
+    PHP_RINIT(mdbm),
+    PHP_RSHUTDOWN(mdbm),  
     PHP_MINFO(mdbm),
 #if ZEND_MODULE_API_NO >= 20010901
     PHP_MDBM_VERSION,
@@ -139,8 +139,7 @@ ZEND_GET_MODULE(mdbm)
  */
 /* Remove comments and fill if you need to have entries in php.ini
 PHP_INI_BEGIN()
-    STD_PHP_INI_ENTRY("mdbm.global_value",      "42", PHP_INI_ALL, OnUpdateLong, global_value, zend_mdbm_globals, mdbm_globals)
-    STD_PHP_INI_ENTRY("mdbm.global_string", "foobar", PHP_INI_ALL, OnUpdateString, global_string, zend_mdbm_globals, mdbm_globals)
+    STD_PHP_INI_ENTRY("mdbm.extention_dir",      "/usr/local/mdbm/lib64", PHP_INI_ALL, OnUpdateLong, global_value, zend_mdbm_globals, mdbm_globals)
 PHP_INI_END()
 */
 /* }}} */
