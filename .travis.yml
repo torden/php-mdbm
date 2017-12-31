@@ -25,7 +25,6 @@ before_install:
 script:
     - cd php5
     - phpize
-    - make clean
-    - ./configure --with-php-config=php-config --with-mdbm=/tmp/mdbm/
+    - ./configure --with-php-config=`which php-config` --with-mdbm=/usr/local/mdbm/
     - make -j2
     - make test
