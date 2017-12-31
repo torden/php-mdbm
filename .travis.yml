@@ -1,0 +1,18 @@
+sudo: false
+language: php
+php:
+    - '5.x'
+    - hhvm
+before_install:
+    - git clone https://github.com/yahoo/mdbm.git src_mdbm
+before_script:
+    - cd src_mdbm/
+    - make -j2 
+    - make install
+    - cd ..
+script:
+    - phpize
+    - make clean
+    - ./configure --with-php-config=php-config --with-mdbm=/tmp/mdbm/
+    - make -j2
+    - make test
