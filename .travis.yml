@@ -12,6 +12,8 @@ matrix:
     - php: 5.x
       dist: precise
 before_install:
+    - sudo apt-get update -qq
+    - sudo apt-get install -y openssl libcppunit-dev libreadline6 libreadline6-dev valgrind realpath libmodule-install-perl
     - git clone https://github.com/yahoo/mdbm.git src_mdbm
 before_script:
     - cd src_mdbm/
