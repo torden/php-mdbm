@@ -1,5 +1,5 @@
 --TEST--
-MDBM create db
+MDBM obtain info
 --SKIPIF--
 <?php include("skipif.inc"); ?>
 --FILE--

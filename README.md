@@ -66,13 +66,14 @@ Download from github
 git clone https://github.com/torden/php-mdbm
 ```
 
-Compile
+Compile (for PHP5.x)
 
 ```shell
-cd php-mdbm
+cd php-mdbm/php5/
 $PHP_INSTALLED_PATH/bin/phpize
 ./configure --with-mdbm=/usr/local/mdbm/
 make
+make test
 make install
 ```
 

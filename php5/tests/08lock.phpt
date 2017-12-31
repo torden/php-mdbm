@@ -1,5 +1,5 @@
 --TEST--
-MDBM generate data on locking
+MDBM locking
 --SKIPIF--
 <?php include("skipif.inc"); ?>
 --FILE--

@@ -1,5 +1,5 @@
 --TEST--
-MDBM generate data
+MDBM iterate
 --SKIPIF--
 <?php include("skipif.inc"); ?>
 --FILE--
