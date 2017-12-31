@@ -120,8 +120,14 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_key, 0, 0, 2)
     ZEND_ARG_INFO(0, pkey)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_flag, 0, 0, 2)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_flag, 0, 0, 1)
     ZEND_ARG_INFO(0, flag)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_level_verbose, 0, 0, 2)
+    ZEND_ARG_INFO(0, pmdbm)
+    ZEND_ARG_INFO(0, level)
+    ZEND_ARG_INFO(0, verbose)
 ZEND_END_ARG_INFO()
 
 
@@ -168,6 +174,8 @@ static const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_set_cachemode,          arginfo_mdbm_pmdbm_flags)
     PHP_FE(mdbm_get_cachemode,          arginfo_mdbm_open_res)
     PHP_FE(mdbm_get_cachemode_name,     arginfo_mdbm_flag)
+    
+    PHP_FE(mdbm_check,                  arginfo_mdbm_level_verbose)
 
     PHP_FE_END
 };
@@ -1389,6 +1397,42 @@ PHP_FUNCTION(mdbm_get_cachemode_name) {
     pretval = fix_not_zero_terminated((char *)pcache_name, retval_len);
 
     RETURN_STRINGL(pretval, retval_len, 0);
+}
+
+PHP_FUNCTION(mdbm_check) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    long level = -1;
+    long verbose = 0;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl|l", &mdbm_link_index, &level, &verbose) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (mdbm_link_index == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //get mdbm link
+    ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
+
+    if (level < MDBM_CHECK_HEADER || level > MDBM_CHECK_ALL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "mdbm_check does not support level(=%ld)", level);
+        RETURN_FALSE;
+    }
+
+    rv = mdbm_check(mdbm_link->pmdbm, (int)level, (int)verbose);
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_LONG(rv);
 }
 /*
  * Local variables:

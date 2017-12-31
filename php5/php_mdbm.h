@@ -83,6 +83,8 @@ PHP_FUNCTION(mdbm_set_cachemode);
 PHP_FUNCTION(mdbm_get_cachemode);
 PHP_FUNCTION(mdbm_get_cachemode_name);
 
+PHP_FUNCTION(mdbm_check);
+
 /* 
   	Declare any global variables you may need between the BEGIN
 	and END macros here:     

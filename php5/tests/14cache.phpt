@@ -1,5 +1,5 @@
 --TEST--
-MDBM obtain info
+MDBM cache
 --SKIPIF--
 <?php include("skipif.inc"); ?>
 --FILE--
