@@ -65,6 +65,7 @@ PHP_FUNCTION(mdbm_get_page_size);
 PHP_FUNCTION(mdbm_set_hash);
 PHP_FUNCTION(mdbm_get_hash);
 PHP_FUNCTION(mdbm_get_limit_size);
+PHP_FUNCTION(mdbm_compress_tree);
 
 PHP_FUNCTION(mdbm_store);
 PHP_FUNCTION(mdbm_fetch);

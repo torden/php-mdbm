@@ -1,5 +1,5 @@
 --TEST--
-MDBM iterate
+MDBM delete
 --SKIPIF--
 <?php include("skipif.inc"); ?>
 --FILE--
