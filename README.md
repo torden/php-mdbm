@@ -1,6 +1,6 @@
 # PHP-mdbm
 
-*Unfortunately, Not ready for use. I developing codes in my leisure hours It won't be much longer...*
+*Unfortunately, Not ready for use. It won't be much longer...*
 
 - MDBM is a super-fast memory-mapped key/value store.
 - MDBM is an ndbm work-alike hashed database library based on sdbm which is based on Per-Aake Larson’s Dynamic Hashing algorithms.
@@ -44,10 +44,19 @@ the following is list of support api on now.
 
 ## Support two compatibility version
 
+### PHP
+
 |*Version*|*Support*|*Test*|*Develop*|
 |---|---|---|---|
 |5.x|yes|always|doing|
 |7.x|yes(as soon)|as soon|as soon|
+
+### MDBM
+
+|*branch or release ver.*|*Support*|*Test*|*Comment*|
+|---|---|---|---|
+|master|yes|always|
+|4.x|yes|always|
 
 ## Install
 
@@ -80,4 +89,3 @@ make install
 
 ---
 Please feel free. I hope it is helpful for you
-
