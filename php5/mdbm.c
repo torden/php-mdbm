@@ -222,10 +222,6 @@ ZEND_MODULE_STARTUP_D(mdbm)
     REGISTER_MDBM_CONSTANT(MDBM_O_TRUNC);
     REGISTER_MDBM_CONSTANT(MDBM_O_FSYNC);
     REGISTER_MDBM_CONSTANT(MDBM_O_ASYNC);
-    REGISTER_MDBM_CONSTANT(MDBM_O_ASYNC);
-    REGISTER_MDBM_CONSTANT(MDBM_O_FSYNC);
-    REGISTER_MDBM_CONSTANT(MDBM_O_CREAT);
-    REGISTER_MDBM_CONSTANT(MDBM_O_TRUNC);
     REGISTER_MDBM_CONSTANT(MDBM_O_DIRECT);
     REGISTER_MDBM_CONSTANT(MDBM_NO_DIRTY);
     REGISTER_MDBM_CONSTANT(MDBM_SINGLE_ARCH);
@@ -266,8 +262,6 @@ ZEND_MODULE_STARTUP_D(mdbm)
     REGISTER_MDBM_CONSTANT(MDBM_ITERATE_ENTRIES);
     REGISTER_MDBM_CONSTANT(MDBM_ITERATE_NOLOCK);
     REGISTER_MDBM_CONSTANT(MDBM_LOCKMODE_UNKNOWN);
-    REGISTER_MDBM_CONSTANT(MDBM_LOCKMODE_UNKNOWN);
-    REGISTER_MDBM_CONSTANT(MDBM_SAVE_COMPRESS_TREE);
     REGISTER_MDBM_CONSTANT(MDBM_CHECK_HEADER);
     REGISTER_MDBM_CONSTANT(MDBM_CHECK_CHUNKS);
     REGISTER_MDBM_CONSTANT(MDBM_CHECK_DIRECTORY);
@@ -1102,8 +1096,8 @@ PHP_FUNCTION(mdbm_first) {
 
     array_init(return_value);
 
-    add_assoc_stringl(return_value, "key", pretkey, kv.key.dsize+1, 0);
-    add_assoc_stringl(return_value, "value", pretval, kv.val.dsize+1, 0);
+    add_assoc_stringl(return_value, "key", pretkey, kv.key.dsize, 0);
+    add_assoc_stringl(return_value, "value", pretval, kv.val.dsize, 0);
 }
 
 PHP_FUNCTION(mdbm_next) {
@@ -1147,8 +1141,8 @@ PHP_FUNCTION(mdbm_next) {
 
     array_init(return_value);
 
-    add_assoc_stringl(return_value, "key", pretkey, kv.key.dsize+1, 0);
-    add_assoc_stringl(return_value, "value", pretval, kv.val.dsize+1, 0);
+    add_assoc_stringl(return_value, "key", pretkey, kv.key.dsize, 0);
+    add_assoc_stringl(return_value, "value", pretval, kv.val.dsize, 0);
 }
 
 PHP_FUNCTION(mdbm_firstkey) {
@@ -1185,7 +1179,7 @@ PHP_FUNCTION(mdbm_firstkey) {
         RETURN_FALSE;
     }
 
-    RETURN_STRINGL(pretkey, key.dsize+1, 0);
+    RETURN_STRINGL(pretkey, key.dsize, 0);
 }
 
 PHP_FUNCTION(mdbm_nextkey) {
@@ -1222,7 +1216,7 @@ PHP_FUNCTION(mdbm_nextkey) {
         RETURN_FALSE;
     }
 
-    RETURN_STRINGL(pretval, val.dsize+1, 0);
+    RETURN_STRINGL(pretval, val.dsize, 0);
 }
 
 PHP_FUNCTION(mdbm_count_records) {
