@@ -12,7 +12,6 @@ $kv = mdbm_first($db);
 while($kv) {
 
     print_r($kv);
-
     $kv = mdbm_next($db);
 }
 
