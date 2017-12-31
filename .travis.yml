@@ -23,6 +23,7 @@ before_install:
 #    - make install
 #    - cd ..
 script:
+    - cd php5
     - phpize
     - make clean
     - ./configure --with-php-config=php-config --with-mdbm=/tmp/mdbm/
