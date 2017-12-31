@@ -85,6 +85,7 @@ make install
 - [MDBM::Document](http://yahoo.github.io/mdbm/)
 - [MDBM::FAQ](http://yahoo.github.io/mdbm/guide/faq.html)
 - [DBM](https://en.wikipedia.org/wiki/Dbm)
+- [MDBM::Macro(const)](http://yahoo.github.io/mdbm/api/mdbm_8h.html)
 - [Go-mdbm](https://github.com/torden/go-mdbm)
 
 
