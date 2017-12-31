@@ -6,25 +6,23 @@ MDBM iterating
 <?php
 include("config.inc");
 $db = mdbm_open(TEST_MDBM, MDBM_O_RDWR|MDBM_O_CREAT|MDBM_LARGE_OBJECTS, 0666, 0,0);
+CHECK_FALSE($db);
+
 for($i=0;$i<10;$i++) {
     $v =  rand(1,65535);
     $rv = mdbm_store($db, $i, $v);
-    if($rv == false) {
-        FAIL();
-    }
+    CHECK_FALSE($rv);
 }
 
 $rv = mdbm_sync($db);
-if ($rv == false) {
-    FAIL();
-}
+CHECK_FALSE($rv);
 
 $rv = mdbm_close($db);
-if ($rv == false) {
-    FAIL();
-}
+CHECK_FALSE($rv);
 
 $db2 = mdbm_open(TEST_MDBM, MDBM_O_RDWR, 0666, 0,0);
+CHECK_FALSE($db2);
+
 $key = mdbm_firstkey($db2);
 while($key != false) {
 
@@ -33,9 +31,7 @@ while($key != false) {
 }
 
 $rv = mdbm_close($db2);
-if ($rv == false) {
-    FAIL();
-}
+CHECK_FALSE($rv);
 
 ?>
 --EXPECT--

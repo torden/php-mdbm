@@ -68,7 +68,7 @@ static inline char* fix_not_zero_terminated(char *dptr, int dsize) {
 
     pretval = (char *) safe_emalloc(sizeof(char *), dsize+2, 0);
     if (pretval == NULL) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "unable to allocate");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory");
         return NULL;
     }
 
@@ -77,7 +77,7 @@ static inline char* fix_not_zero_terminated(char *dptr, int dsize) {
     //copy
     strncpy(pretval, dptr, dsize);
     if (pretval == NULL) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "strncpy failed");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to strncpy");
         return NULL;
     }
 
@@ -120,6 +120,11 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_key, 0, 0, 2)
     ZEND_ARG_INFO(0, pkey)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_flag, 0, 0, 2)
+    ZEND_ARG_INFO(0, flag)
+ZEND_END_ARG_INFO()
+
+
 static const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_log_minlevel,           arginfo_mdbm_log_minlevel)
     PHP_FE(mdbm_open,                   arginfo_mdbm_open)
@@ -129,6 +134,7 @@ static const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_sync,                   arginfo_mdbm_open_res)
     PHP_FE(mdbm_fsync,                  arginfo_mdbm_open_res)
 
+    PHP_FE(mdbm_get_lockmode,           arginfo_mdbm_open_res)
     PHP_FE(mdbm_lock,                   arginfo_mdbm_open_res)
     PHP_FE(mdbm_unlock,                 arginfo_mdbm_open_res)
     PHP_FE(mdbm_islocked,               arginfo_mdbm_open_res)
@@ -158,6 +164,11 @@ static const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_nextkey,                arginfo_mdbm_open_res)
 
     PHP_FE(mdbm_count_records,          arginfo_mdbm_open_res)
+
+    PHP_FE(mdbm_set_cachemode,          arginfo_mdbm_pmdbm_flags)
+    PHP_FE(mdbm_get_cachemode,          arginfo_mdbm_open_res)
+    PHP_FE(mdbm_get_cachemode_name,     arginfo_mdbm_flag)
+
     PHP_FE_END
 };
  
@@ -546,6 +557,34 @@ PHP_FUNCTION(mdbm_fsync) {
     ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
 
     rv = mdbm_fsync(mdbm_link->pmdbm);
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
+}
+
+PHP_FUNCTION(mdbm_get_lockmode) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    uint32_t rv = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (mdbm_link_index == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //get mdbm link
+    ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
+
+    rv = mdbm_get_lockmode(mdbm_link->pmdbm);
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1262,7 +1301,95 @@ PHP_FUNCTION(mdbm_count_records) {
     rv = mdbm_count_records(mdbm_link->pmdbm);
     RETURN_LONG(rv);
 }
-  
+
+PHP_FUNCTION(mdbm_set_cachemode) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    long flag = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &flag) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (mdbm_link_index == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (flag < MDBM_CACHEMODE_NONE || flag > MDBM_CACHEMODE_MAX) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "mdbm_set_cachemode does not support hash(=%ld)", flag);
+        RETURN_FALSE;
+    }
+
+    //get mdbm link
+    ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
+
+    rv = mdbm_set_cachemode(mdbm_link->pmdbm, (int)flag);
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
+}
+
+PHP_FUNCTION(mdbm_get_cachemode) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (mdbm_link_index == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //get mdbm link
+    ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, "mdbm link", le_link);
+
+    rv = mdbm_get_cachemode(mdbm_link->pmdbm);
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_LONG(rv);
+}
+
+PHP_FUNCTION(mdbm_get_cachemode_name) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    const char *pcache_name = NULL;
+    int cacheno = -1;
+
+    char *pretval = NULL;
+    int retval_len = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &cacheno) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    pcache_name = mdbm_get_cachemode_name(cacheno); //return value from stack
+    retval_len = (int)strlen(pcache_name);
+
+    pretval = fix_not_zero_terminated((char *)pcache_name, retval_len);
+
+    RETURN_STRINGL(pretval, retval_len, 0);
+}
 /*
  * Local variables:
  * tab-width: 4

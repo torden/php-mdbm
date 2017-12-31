@@ -50,6 +50,8 @@ PHP_FUNCTION(mdbm_close);
 PHP_FUNCTION(mdbm_truncate);
 PHP_FUNCTION(mdbm_sync);
 PHP_FUNCTION(mdbm_fsync);
+
+PHP_FUNCTION(mdbm_get_lockmode);
 PHP_FUNCTION(mdbm_lock);
 PHP_FUNCTION(mdbm_unlock);
 PHP_FUNCTION(mdbm_islocked);
@@ -77,6 +79,9 @@ PHP_FUNCTION(mdbm_nextkey);
 
 PHP_FUNCTION(mdbm_count_records);
 
+PHP_FUNCTION(mdbm_set_cachemode);
+PHP_FUNCTION(mdbm_get_cachemode);
+PHP_FUNCTION(mdbm_get_cachemode_name);
 
 /* 
   	Declare any global variables you may need between the BEGIN

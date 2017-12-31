@@ -7,8 +7,11 @@ MDBM iterating
 include("config.inc");
 
 $db = mdbm_open(TEST_MDBM, MDBM_O_RDWR, 0666, 0,0);
+CHECK_FALSE($db);
 
 $kv = mdbm_first($db);
+CHECK_FALSE($kv);
+
 while($kv) {
 
     print_r($kv);
@@ -16,10 +19,7 @@ while($kv) {
 }
 
 $rv = mdbm_close($db);
-if ($rv == false) {
-    FAIL();
-}
-
+CHECK_FALSE($rv);
 
 ?>
 --EXPECT--
