@@ -1,8 +1,0 @@
-mdbm.lo: /root/PERSONAL/php-mdbm/php5/mdbm.c
-	$(LIBTOOL) --mode=compile $(CC)  -I. -I/root/PERSONAL/php-mdbm/php5 $(COMMON_FLAGS) $(CFLAGS_CLEAN) $(EXTRA_CFLAGS)  -c /root/PERSONAL/php-mdbm/php5/mdbm.c -o mdbm.lo 
-$(phplibdir)/mdbm.la: ./mdbm.la
-	$(LIBTOOL) --mode=install cp ./mdbm.la $(phplibdir)
-
-./mdbm.la: $(shared_objects_mdbm) $(MDBM_SHARED_DEPENDENCIES)
-	$(LIBTOOL) --mode=link $(CC) $(COMMON_FLAGS) $(CFLAGS_CLEAN) $(EXTRA_CFLAGS) $(LDFLAGS) -o $@ -export-dynamic -avoid-version -prefer-pic -module -rpath $(phplibdir) $(EXTRA_LDFLAGS) $(shared_objects_mdbm) $(MDBM_SHARED_LIBADD)
-
