@@ -56,3 +56,4 @@ z.php
 .*.swp
 *.swp
 *.bak
+*.core.*

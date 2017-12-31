@@ -7,49 +7,35 @@ MDBM locking
 include("config.inc");
 
 $db = mdbm_open(TEST_MDBM, MDBM_O_RDWR|MDBM_O_CREAT|MDBM_ANY_LOCKS, 0666, 0,0);
+CHECK_FALSE($db);
 
 $rv = mdbm_lock($db);
-if($rv == false) {
-    FAIL();
-}
+CHECK_FALSE($rv);
 
 $rv = mdbm_islocked($db);
-if($rv == false) {
-    FAIL();
-}
+CHECK_FALSE($rv);
+
+$rv = mdbm_get_lockmode($db);
+CHECK_FALSE($rv);
 
 $rv = mdbm_isowned($db);
-if($rv == false) {
-    FAIL();
-}
+CHECK_FALSE($rv);
 
 //output to consol
 $rv = mdbm_lock_reset(TEST_MDBM);
-if($rv == false) {
-    FAIL();
-}
+CHECK_FALSE($rv);
 
 $rv = mdbm_lock($db);
-if($rv == false) {
-    FAIL();
-}
+CHECK_FALSE($rv);
 
 $rv = mdbm_islocked($db);
-if($rv == false) {
-    FAIL();
-}
+CHECK_FALSE($rv);
 
 $rv = mdbm_isowned($db);
-if($rv == false) {
-    FAIL();
-}
-
+CHECK_FALSE($rv);
 
 $rv = mdbm_delete_lockfiles(TEST_MDBM);
-if($rv == false) {
-    FAIL();
-}
-
+CHECK_FALSE($rv);
 
 ?>
 --EXPECT--
