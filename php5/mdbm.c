@@ -30,6 +30,7 @@
 #include <mdbm.h>
 #include <mdbm_log.h>
 #include <limits.h>
+#include <signal.h>
 
 #include "php_mdbm.h"
 
