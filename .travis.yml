@@ -1,8 +1,16 @@
-sudo: false
 language: php
+sudo: required
+dist: trusty
 php:
-    - '5.x'
     - hhvm
+matrix:
+  include:
+    - php: 5.2
+      dist: precise
+    - php: 5.3
+      dist: precise
+    - php: 5.x
+      dist: precise
 before_install:
     - git clone https://github.com/yahoo/mdbm.git src_mdbm
 before_script:
