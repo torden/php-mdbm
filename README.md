@@ -68,10 +68,24 @@ the following is list of support api on now.
 
 ## Install
 
+### MDBM
+
+- Ubuntu : See the [pre-build packages for ubuntu](https://github.com/torden/go-mdbm/tree/master/pkg)
+- RHEL (CentOS) : See the [documentation for](https://github.com/yahoo/mdbm/blob/master/README.build) build and install
+
+### php-mdbm
+
 Download from github
 
 ```shell
 git clone https://github.com/torden/php-mdbm
+```
+
+Or Download the tarball [(tag or release](https://github.com/torden/php-mdbm/releases))
+
+```shell
+wget https://github.com/torden/go-mdbm/archive/vX.X.X.tar.gz
+tar xvzf vX.X.X.tar.gz
 ```
 
 Compile (for PHP5.x)
