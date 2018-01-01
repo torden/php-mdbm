@@ -31,6 +31,7 @@
 #include <mdbm_log.h>
 #include <limits.h>
 #include <signal.h>
+#include <unistd.h>
 
 #include "php_mdbm.h"
 
@@ -40,7 +41,7 @@ typedef struct _php_mdbm_open {
     MDBM *pmdbm;
 } php_mdbm_open;
 
-static int le_link;
+static int le_link, loglevel, dev_null;
 
 #define FETCH_RES(mdbm_link_index, id) {\
     if (mdbm_link_index == NULL) {\
@@ -64,6 +65,18 @@ static int le_link;
     }\
 }
 
+#define CAPTURE_START() {\
+    dev_null = open("/dev/null", O_WRONLY);\
+    if (loglevel == -1) {\
+        dup2(dev_null, STDOUT_FILENO);\
+        dup2(dev_null, STDERR_FILENO);\
+    }\
+}
+
+#define CAPTURE_END() {\
+    close(dev_null);\
+}
+
 static void _close_mdbm_link(zend_rsrc_list_entry *rsrc TSRMLS_DC) {
 
     php_mdbm_open *link = (php_mdbm_open *)rsrc->ptr;
@@ -80,9 +93,8 @@ static int php_info_print(const char *str) {
     return php_output_write(str, strlen(str) TSRMLS_CC);
 }
 
-//for fix "Warning: String is not zero-terminated" issue aftre ran mdbm_preload
-//Ver : mdbm 4.12.3
-static inline char* fix_not_zero_terminated(char *dptr, int dsize) {
+//FIX : "Warning: String is not zero-terminated" issue aftre ran mdbm_preload
+static inline char* copy_strptr(char *dptr, int dsize) {
 
     char *pretval = NULL;
 
@@ -156,12 +168,25 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_level_verbose, 0, 0, 2)
     ZEND_ARG_INFO(0, verbose)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_newfile, 0, 0, 2)
+    ZEND_ARG_INFO(0, pmdbm)
+    ZEND_ARG_INFO(0, newfile)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_oldfile_newfile, 0, 0, 2)
+    ZEND_ARG_INFO(0, oldfile)
+    ZEND_ARG_INFO(0, newfile)
+ZEND_END_ARG_INFO()
+
 
 static const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_log_minlevel,           arginfo_mdbm_log_minlevel)
     PHP_FE(mdbm_open,                   arginfo_mdbm_open)
     PHP_FE(mdbm_close,                  arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_truncate,               arginfo_mdbm_pmdbm)
+
+    PHP_FE(mdbm_replace_db,             arginfo_mdbm_newfile)
+    PHP_FE(mdbm_replace_file,           arginfo_mdbm_oldfile_newfile)
 
     PHP_FE(mdbm_sync,                   arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_fsync,                  arginfo_mdbm_pmdbm)
@@ -275,6 +300,23 @@ ZEND_MODULE_STARTUP_D(mdbm)
     //REGISTER_INI_ENTRIES();
 
     le_link = zend_register_list_destructors_ex(_close_mdbm_link, NULL, "mdbm-link", module_number);
+
+
+    REGISTER_MDBM_CONSTANT(MDBM_LOG_OFF);
+    REGISTER_MDBM_CONSTANT(MDBM_LOG_EMERGENCY);
+    REGISTER_MDBM_CONSTANT(MDBM_LOG_ALERT);
+    REGISTER_MDBM_CONSTANT(MDBM_LOG_CRITICAL);
+    REGISTER_MDBM_CONSTANT(MDBM_LOG_ERROR);
+    REGISTER_MDBM_CONSTANT(MDBM_LOG_WARNING);
+    REGISTER_MDBM_CONSTANT(MDBM_LOG_NOTICE);
+    REGISTER_MDBM_CONSTANT(MDBM_LOG_INFO);
+    REGISTER_MDBM_CONSTANT(MDBM_LOG_DEBUG);
+    REGISTER_MDBM_CONSTANT(MDBM_LOG_DEBUG2);
+    REGISTER_MDBM_CONSTANT(MDBM_LOG_DEBUG3);
+    REGISTER_MDBM_CONSTANT(MDBM_LOG_MAXLEVEL);
+    REGISTER_MDBM_CONSTANT(MDBM_LOG_ABORT);
+    REGISTER_MDBM_CONSTANT(MDBM_LOG_FATAL);
+
 
     REGISTER_MDBM_CONSTANT(MDBM_KEYLEN_MAX);
     REGISTER_MDBM_CONSTANT(MDBM_VALLEN_MAX);
@@ -460,13 +502,15 @@ PHP_MINFO_FUNCTION(mdbm)
 
 PHP_FUNCTION(mdbm_log_minlevel) {
 
-    int flags = 0;
+    long flags = 0;
 
     if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &flags)) {
         RETURN_FALSE;
     }
 
-    mdbm_log_minlevel(flags);
+    loglevel = (int)flags;
+
+    mdbm_log_minlevel((int)flags);
     RETURN_TRUE;
 }
 
@@ -492,8 +536,9 @@ PHP_FUNCTION(mdbm_open) {
     }
 
     //disable the log to stderr
-    mdbm_log_minlevel(-1);
     setenv("MDBM_LOG_LEVEL","-1",1);      
+    mdbm_log_minlevel(-1);
+
 
     //open the mdbm
     pmdbm = mdbm_open(pfilepath, (int)flags, (int)mode, (int)size, (int)resize);
@@ -550,7 +595,54 @@ PHP_FUNCTION(mdbm_truncate) {
     RETURN_NULL();
 }
 
+PHP_FUNCTION(mdbm_replace_db) {
 
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    char *pnewfile = NULL;
+    int newfile_len = 0;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rp", &mdbm_link_index, &pnewfile, &newfile_len) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+	//fetch the resource
+	FETCH_RES(mdbm_link_index, id);
+
+    rv = mdbm_replace_db(mdbm_link->pmdbm, pnewfile);
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
+}
+
+PHP_FUNCTION(mdbm_replace_file) {
+
+    int rv = -1;
+
+    char *poldfile = NULL;
+    int oldfile_len = 0;
+
+    char *pnewfile = NULL;
+    int newfile_len = 0;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "pp", &poldfile, &oldfile_len, &pnewfile, &newfile_len) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    rv = mdbm_replace_file(poldfile, pnewfile);
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
+}
 
 PHP_FUNCTION(mdbm_sync) {
 
@@ -999,7 +1091,9 @@ PHP_FUNCTION(mdbm_lock_reset) {
     }
 
     //flags Reserved for future use, and must be 0.
-    rv = mdbm_lock_reset(dbfn, 0);
+    CAPTURE_START();
+        rv = mdbm_lock_reset(dbfn, 0);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1232,11 +1326,14 @@ PHP_FUNCTION(mdbm_store) {
 
     int rv = -1;
     char *pkey = NULL;
-    int key_len = 0;
+    long key_len = 0;
     char *pval = NULL;
-    int val_len = 0;
-    int flags = MDBM_INSERT;
+    long val_len = 0;
+    long flags = MDBM_INSERT;
     datum key, val;
+
+    char *psetkey = NULL;
+    char *psetval = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss|l", &mdbm_link_index, &pkey, &key_len, &pval, &val_len, &flags) == FAILURE) {
         RETURN_FALSE;
@@ -1251,13 +1348,33 @@ PHP_FUNCTION(mdbm_store) {
     //check the length of value
     CHECK_VALLEN(val_len);
 
-    //make a datum
-    key.dptr = pkey;
-    key.dsize = key_len;
-    val.dptr = pval;
-    val.dsize = val_len;
 
-    rv = mdbm_store(mdbm_link->pmdbm, key, val, flags);
+/* FIX: 
+mdbm_store_r (db=0x7d44530, key=key@entry=0xffeffb830, val=val@entry=0xffeffb820, flags=1, iter=iter@entry=0x0) at mdbm.c:4867
+(esize > maxesize || (db->db_spillsize && MDBM_LOB_ENABLED(db) && vsize >= db->db_spillsize)) {
+*/
+    psetkey = copy_strptr((char *)pkey, key_len);
+    if (psetkey == NULL) {
+        RETURN_FALSE;
+    }
+
+    psetval = copy_strptr((char *)pval, val_len);
+    if (psetkey == NULL) {
+        RETURN_FALSE;
+    }
+
+    //make a datum
+    key.dptr = psetkey;
+    key.dsize = (int)key_len;
+    val.dptr = psetval;
+    val.dsize = (int)val_len;
+
+
+    rv = mdbm_store(mdbm_link->pmdbm, key, val, (int)flags);
+
+    efree(psetkey);
+    efree(psetval);
+
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1274,7 +1391,7 @@ PHP_FUNCTION(mdbm_fetch) {
     datum key, val;
 
     char *pkey = NULL;
-    int key_len = 0;
+    long key_len = 0;
 
     char *pretval = NULL;
 
@@ -1291,7 +1408,7 @@ PHP_FUNCTION(mdbm_fetch) {
 
     //make a datum
     key.dptr = pkey;
-    key.dsize = key_len;
+    key.dsize = (int)key_len;
 
     val = mdbm_fetch(mdbm_link->pmdbm, key);
     if (val.dptr == NULL) {
@@ -1299,7 +1416,7 @@ PHP_FUNCTION(mdbm_fetch) {
     }
 
     //for fix "Warning: String is not zero-terminated" issue aftre ran mdbm_preload
-    pretval = fix_not_zero_terminated(val.dptr, val.dsize);
+    pretval = copy_strptr(val.dptr, val.dsize);
     if (pretval == NULL) {
         RETURN_FALSE;
     }
@@ -1316,7 +1433,7 @@ PHP_FUNCTION(mdbm_delete) {
     datum key;
 
     char *pkey = NULL;
-    int key_len = 0;
+    long key_len = 0;
 
     char *pretval = NULL;
 
@@ -1333,7 +1450,7 @@ PHP_FUNCTION(mdbm_delete) {
 
     //make a datum
     key.dptr = pkey;
-    key.dsize = key_len;
+    key.dsize = (int)key_len;
 
     rv = mdbm_delete(mdbm_link->pmdbm, key);
     if (rv == -1) {
@@ -1368,12 +1485,12 @@ PHP_FUNCTION(mdbm_first) {
         RETURN_FALSE;
     }
 
-    pretkey = fix_not_zero_terminated(kv.key.dptr, kv.key.dsize);
+    pretkey = copy_strptr(kv.key.dptr, kv.key.dsize);
     if (pretkey == NULL) {
         RETURN_FALSE;
     }
 
-    pretval = fix_not_zero_terminated(kv.val.dptr, kv.val.dsize);
+    pretval = copy_strptr(kv.val.dptr, kv.val.dsize);
     if (pretval == NULL) {
         RETURN_FALSE;
     }
@@ -1408,12 +1525,12 @@ PHP_FUNCTION(mdbm_next) {
         RETURN_FALSE;
     }
 
-    pretkey = fix_not_zero_terminated(kv.key.dptr, kv.key.dsize);
+    pretkey = copy_strptr(kv.key.dptr, kv.key.dsize);
     if (pretkey == NULL) {
         RETURN_FALSE;
     }
 
-    pretval = fix_not_zero_terminated(kv.val.dptr, kv.val.dsize);
+    pretval = copy_strptr(kv.val.dptr, kv.val.dsize);
     if (pretval == NULL) {
         RETURN_FALSE;
     }
@@ -1448,7 +1565,7 @@ PHP_FUNCTION(mdbm_firstkey) {
     }
 
     //for fix "Warning: String is not zero-terminated" issue aftre ran mdbm_preload
-    pretkey = fix_not_zero_terminated(key.dptr, key.dsize);
+    pretkey = copy_strptr(key.dptr, key.dsize);
     if (pretkey == NULL) {
         RETURN_FALSE;
     }
@@ -1480,7 +1597,7 @@ PHP_FUNCTION(mdbm_nextkey) {
     }
 
     //for fix "Warning: String is not zero-terminated" issue aftre ran mdbm_preload
-    pretval = fix_not_zero_terminated(val.dptr, val.dsize);
+    pretval = copy_strptr(val.dptr, val.dsize);
     if (pretval == NULL) {
         RETURN_FALSE;
     }
@@ -1581,7 +1698,7 @@ PHP_FUNCTION(mdbm_get_cachemode_name) {
     pcache_name = mdbm_get_cachemode_name(cacheno); //return value from stack
     retval_len = (int)strlen(pcache_name);
 
-    pretval = fix_not_zero_terminated((char *)pcache_name, retval_len);
+    pretval = copy_strptr((char *)pcache_name, retval_len);
 
     RETURN_STRINGL(pretval, retval_len, 0);
 }
@@ -1594,9 +1711,9 @@ PHP_FUNCTION(mdbm_check) {
     int rv = -1;
 
     long level = -1;
-    long verbose = 0;
+    zend_bool verbose = FALSE;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl|l", &mdbm_link_index, &level, &verbose) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl|b", &mdbm_link_index, &level, &verbose) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
         RETURN_FALSE;
     }
@@ -1609,7 +1726,7 @@ PHP_FUNCTION(mdbm_check) {
         RETURN_FALSE;
     }
 
-    if (verbose < 0 || level > 1 ) {
+    if (verbose < 0 || verbose > 1 ) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "mdbm_check does not support verbose(=%ld)", verbose);
         RETURN_FALSE;
     }
