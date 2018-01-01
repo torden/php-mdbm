@@ -123,7 +123,14 @@ CHECK_FALSE($rv);
 $rv = mdbm_protect($db, MDBM_PROT_NONE);
 CHECK_FALSE($rv);
 
+$rv = mdbm_lock_pages($db);
+CHECK_FALSE($rv);
 
+    $rv = mdbm_store($db, $key, $key, MDBM_REPLACE);
+    CHECK_FALSE($rv);
+
+$rv = mdbm_unlock_pages($db);
+CHECK_FALSE($rv);
 ?>
 --EXPECT--
 NOTE: Resetting locks for /tmp/test_phpt.mdbm!

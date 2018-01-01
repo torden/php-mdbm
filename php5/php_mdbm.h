@@ -100,6 +100,10 @@ PHP_FUNCTION(mdbm_chk_all_page);
 
 PHP_FUNCTION(mdbm_protect);
 
+PHP_FUNCTION(mdbm_lock_pages);
+PHP_FUNCTION(mdbm_unlock_pages);
+
+
 /* 
   	Declare any global variables you may need between the BEGIN
 	and END macros here:     

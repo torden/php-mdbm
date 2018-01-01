@@ -119,7 +119,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_open, 0, 0, 3)
     ZEND_ARG_INFO(0, presize)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_open_res, 0, 0, 1)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_pmdbm, 0, 0, 1)
     ZEND_ARG_INFO(0, pmdbm)
 ZEND_END_ARG_INFO()
 
@@ -160,64 +160,67 @@ ZEND_END_ARG_INFO()
 static const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_log_minlevel,           arginfo_mdbm_log_minlevel)
     PHP_FE(mdbm_open,                   arginfo_mdbm_open)
-    PHP_FE(mdbm_close,                  arginfo_mdbm_open_res)
-    PHP_FE(mdbm_truncate,               arginfo_mdbm_open_res)
+    PHP_FE(mdbm_close,                  arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_truncate,               arginfo_mdbm_pmdbm)
 
-    PHP_FE(mdbm_sync,                   arginfo_mdbm_open_res)
-    PHP_FE(mdbm_fsync,                  arginfo_mdbm_open_res)
+    PHP_FE(mdbm_sync,                   arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_fsync,                  arginfo_mdbm_pmdbm)
 
-    PHP_FE(mdbm_get_lockmode,           arginfo_mdbm_open_res)
+    PHP_FE(mdbm_get_lockmode,           arginfo_mdbm_pmdbm)
 
-    PHP_FE(mdbm_lock,                   arginfo_mdbm_open_res)
-    PHP_FE(mdbm_trylock,                arginfo_mdbm_open_res)
+    PHP_FE(mdbm_lock,                   arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_trylock,                arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_plock,                  arginfo_mdbm_lock_key_flags)
     PHP_FE(mdbm_tryplock,               arginfo_mdbm_lock_key_flags)
-    PHP_FE(mdbm_lock_shared,            arginfo_mdbm_open_res)
-    PHP_FE(mdbm_trylock_shared,         arginfo_mdbm_open_res)
+    PHP_FE(mdbm_lock_shared,            arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_trylock_shared,         arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_lock_smart,             arginfo_mdbm_lock_key_flags)
     PHP_FE(mdbm_trylock_smart,          arginfo_mdbm_lock_key_flags)
     
 
-    PHP_FE(mdbm_unlock,                 arginfo_mdbm_open_res)
+    PHP_FE(mdbm_unlock,                 arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_punlock,                arginfo_mdbm_lock_key_flags)
     PHP_FE(mdbm_unlock_smart,           arginfo_mdbm_lock_key_flags)
 
-    PHP_FE(mdbm_islocked,               arginfo_mdbm_open_res)
-    PHP_FE(mdbm_isowned,                arginfo_mdbm_open_res)
-    PHP_FE(mdbm_lock_reset,             arginfo_mdbm_open_res)
-    PHP_FE(mdbm_delete_lockfiles,       arginfo_mdbm_open_res)
+    PHP_FE(mdbm_islocked,               arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_isowned,                arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_lock_reset,             arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_delete_lockfiles,       arginfo_mdbm_pmdbm)
 
 
-    PHP_FE(mdbm_preload,                arginfo_mdbm_open_res)
+    PHP_FE(mdbm_preload,                arginfo_mdbm_pmdbm)
 
-    PHP_FE(mdbm_get_errno,              arginfo_mdbm_open_res)
-    PHP_FE(mdbm_get_version,            arginfo_mdbm_open_res)
-    PHP_FE(mdbm_get_size,               arginfo_mdbm_open_res)
-    PHP_FE(mdbm_get_page_size,          arginfo_mdbm_open_res)
+    PHP_FE(mdbm_get_errno,              arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_get_version,            arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_get_size,               arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_get_page_size,          arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_set_hash,               arginfo_mdbm_pmdbm_flags)
-    PHP_FE(mdbm_get_hash,               arginfo_mdbm_open_res)
-    PHP_FE(mdbm_get_limit_size,         arginfo_mdbm_open_res)
-    PHP_FE(mdbm_compress_tree,          arginfo_mdbm_open_res)
+    PHP_FE(mdbm_get_hash,               arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_get_limit_size,         arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_compress_tree,          arginfo_mdbm_pmdbm)
 
     PHP_FE(mdbm_store,                  arginfo_mdbm_store)
     PHP_FE(mdbm_fetch,                  arginfo_mdbm_key)
     PHP_FE(mdbm_delete,                 arginfo_mdbm_key)
 
-    PHP_FE(mdbm_first,                  arginfo_mdbm_open_res)
-    PHP_FE(mdbm_next,                   arginfo_mdbm_open_res)
-    PHP_FE(mdbm_firstkey,               arginfo_mdbm_open_res)
-    PHP_FE(mdbm_nextkey,                arginfo_mdbm_open_res)
+    PHP_FE(mdbm_first,                  arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_next,                   arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_firstkey,               arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_nextkey,                arginfo_mdbm_pmdbm)
 
-    PHP_FE(mdbm_count_records,          arginfo_mdbm_open_res)
+    PHP_FE(mdbm_count_records,          arginfo_mdbm_pmdbm)
 
     PHP_FE(mdbm_set_cachemode,          arginfo_mdbm_pmdbm_flags)
-    PHP_FE(mdbm_get_cachemode,          arginfo_mdbm_open_res)
+    PHP_FE(mdbm_get_cachemode,          arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_get_cachemode_name,     arginfo_mdbm_flag)
     
     PHP_FE(mdbm_check,                  arginfo_mdbm_level_verbose)
-    PHP_FE(mdbm_chk_all_page,           arginfo_mdbm_open_res)
+    PHP_FE(mdbm_chk_all_page,           arginfo_mdbm_pmdbm)
 
     PHP_FE(mdbm_protect,                arginfo_mdbm_pmdbm_flags)
+    
+    PHP_FE(mdbm_lock_pages,             arginfo_mdbm_pmdbm_flags)
+    PHP_FE(mdbm_unlock_pages,           arginfo_mdbm_pmdbm_flags)
 
     PHP_FE_END
 };
@@ -1675,6 +1678,53 @@ PHP_FUNCTION(mdbm_protect) {
 
     RETURN_LONG(rv);
 }
+
+PHP_FUNCTION(mdbm_lock_pages) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+	//fetch the resource
+	FETCH_RES(mdbm_link_index, id);
+
+    rv = mdbm_lock_pages(mdbm_link->pmdbm);
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
+}
+
+PHP_FUNCTION(mdbm_unlock_pages) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+	//fetch the resource
+	FETCH_RES(mdbm_link_index, id);
+
+    rv = mdbm_unlock_pages(mdbm_link->pmdbm);
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
+}
+
 /*
  * Local variables:
  * tab-width: 4
