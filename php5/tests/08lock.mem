@@ -1,0 +1,15 @@
+==15970== 
+==15970== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==15970==  Bad permissions for mapped region at address 0x4023014
+==15970==    at 0x71615BD: MDBM_REPLACED_OR_CHANGED (mdbm_internal.h:998)
+==15970==    by 0x71615BD: access_entry (mdbm.c:3246)
+==15970==    by 0x7162184: mdbm_fetch (mdbm.c:4649)
+==15970==    by 0x6F3E9E9: zif_mdbm_fetch (mdbm.c:1353)
+==15970==    by 0x8DDF50: zend_do_fcall_common_helper_SPEC (zend_vm_execute.h:558)
+==15970==    by 0x8E4A6F: ZEND_DO_FCALL_SPEC_CONST_HANDLER (zend_vm_execute.h:2602)
+==15970==    by 0x8DD1A9: execute_ex (zend_vm_execute.h:363)
+==15970==    by 0x8DD28F: zend_execute (zend_vm_execute.h:388)
+==15970==    by 0x88F713: zend_execute_scripts (zend.c:1341)
+==15970==    by 0x7D03B3: php_execute_script (main.c:2613)
+==15970==    by 0x95A082: do_cli (php_cli.c:998)
+==15970==    by 0x95B4B3: main (php_cli.c:1382)

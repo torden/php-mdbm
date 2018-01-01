@@ -25,6 +25,30 @@ extern zend_module_entry mdbm_module_entry;
 #define phpext_mdbm_ptr &mdbm_module_entry
 
 #define PHP_MDBM_VERSION "0.0.1" 
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+#ifndef FALSE
+#define FALSE 0
+#endif
+
+
+#define MDBM_LOG_OFF            -1
+#define MDBM_LOG_EMERGENCY      LOG_EMERG
+#define MDBM_LOG_ALERT          LOG_ALERT
+#define MDBM_LOG_CRITICAL       LOG_CRIT
+#define MDBM_LOG_ERROR          LOG_ERR
+#define MDBM_LOG_WARNING        LOG_WARNING
+#define MDBM_LOG_NOTICE         LOG_NOTICE
+#define MDBM_LOG_INFO           LOG_INFO
+#define MDBM_LOG_DEBUG          LOG_DEBUG
+#define MDBM_LOG_DEBUG2         LOG_DEBUG+1
+#define MDBM_LOG_DEBUG3         LOG_DEBUG+2
+#define MDBM_LOG_MAXLEVEL       LOG_DEBUG+3
+#define MDBM_LOG_ABORT          LOG_EMERG
+#define MDBM_LOG_FATAL          LOG_ALERT
+
 
 #ifdef PHP_WIN32
 #	define PHP_MDBM_API __declspec(dllexport)

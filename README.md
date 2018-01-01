@@ -1,3 +1,4 @@
+
 # PHP-mdbm
 
 *Unfortunately, Not ready for use. It won't be much longer...*
@@ -7,7 +8,9 @@
 - MDBM is a high-performance, memory-mapped hash database similar to the homegrown libhash.
 - The records stored in a mdbm database may have keys and values of arbitrary and variable lengths.
 
-[![Build Status](https://travis-ci.org/torden/php-mdbm.svg?branch=master)](https://travis-ci.org/torden/php-mdbm)
+|Build Stats|PHP-mdbm ver.|Y! mdbm ver.|
+|:-:|:-:|:-:|
+|[![Build Status](https://travis-ci.org/torden/php-mdbm.svg?branch=master)](https://travis-ci.org/torden/php-mdbm)|[![GitHub version](https://badge.fury.io/gh/torden%2Fphp-mdbm.svg)](https://badge.fury.io/gh/torden%2Fphp-mdbm)|[![GitHub version](https://badge.fury.io/gh/yahoo%2Fmdbm.svg)](https://badge.fury.io/gh/yahoo%2Fmdbm)|
 
 ## API
 

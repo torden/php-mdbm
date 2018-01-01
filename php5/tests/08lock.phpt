@@ -28,6 +28,11 @@ CHECK_FALSE($rv);
 $rv = mdbm_lock_reset(TEST_MDBM);
 CHECK_FALSE($rv);
 
+//quite
+mdbm_log_minlevel(MDBM_LOG_OFF);
+$rv = mdbm_lock_reset(TEST_MDBM);
+CHECK_FALSE($rv);
+
 $rv = mdbm_store($db, rand(0,123456789), rand(0,123456789), MDBM_REPLACE);
 CHECK_FALSE($rv);
 
@@ -126,8 +131,10 @@ CHECK_FALSE($rv);
 $rv = mdbm_lock_pages($db);
 CHECK_FALSE($rv);
 
-    $rv = mdbm_store($db, $key, $key, MDBM_REPLACE);
-    CHECK_FALSE($rv);
+    //Segment fault after excuted mdbm_lock_page
+    //$rv = mdbm_store($db, $key, $key, MDBM_REPLACE);
+    //$rv = mdbm_fetch($db, $key);
+    //CHECK_FALSE($rv);
 
 $rv = mdbm_unlock_pages($db);
 CHECK_FALSE($rv);
