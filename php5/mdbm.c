@@ -168,12 +168,25 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_level_verbose, 0, 0, 2)
     ZEND_ARG_INFO(0, verbose)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_newfile, 0, 0, 2)
+    ZEND_ARG_INFO(0, pmdbm)
+    ZEND_ARG_INFO(0, newfile)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_oldfile_newfile, 0, 0, 2)
+    ZEND_ARG_INFO(0, oldfile)
+    ZEND_ARG_INFO(0, newfile)
+ZEND_END_ARG_INFO()
+
 
 static const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_log_minlevel,           arginfo_mdbm_log_minlevel)
     PHP_FE(mdbm_open,                   arginfo_mdbm_open)
     PHP_FE(mdbm_close,                  arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_truncate,               arginfo_mdbm_pmdbm)
+
+    PHP_FE(mdbm_replace_db,             arginfo_mdbm_newfile)
+    PHP_FE(mdbm_replace_file,           arginfo_mdbm_oldfile_newfile)
 
     PHP_FE(mdbm_sync,                   arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_fsync,                  arginfo_mdbm_pmdbm)
@@ -582,7 +595,54 @@ PHP_FUNCTION(mdbm_truncate) {
     RETURN_NULL();
 }
 
+PHP_FUNCTION(mdbm_replace_db) {
 
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    char *pnewfile = NULL;
+    int newfile_len = 0;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rp", &mdbm_link_index, &pnewfile, &newfile_len) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+	//fetch the resource
+	FETCH_RES(mdbm_link_index, id);
+
+    rv = mdbm_replace_db(mdbm_link->pmdbm, pnewfile);
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
+}
+
+PHP_FUNCTION(mdbm_replace_file) {
+
+    int rv = -1;
+
+    char *poldfile = NULL;
+    int oldfile_len = 0;
+
+    char *pnewfile = NULL;
+    int newfile_len = 0;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "pp", &poldfile, &oldfile_len, &pnewfile, &newfile_len) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    rv = mdbm_replace_file(poldfile, pnewfile);
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
+}
 
 PHP_FUNCTION(mdbm_sync) {
 

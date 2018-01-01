@@ -12,7 +12,7 @@ CHECK_FALSE($db);
 $rv = mdbm_close($db);
 CHECK_FALSE($rv);
 
-$db2 = mdbm_open("/tmp/test1.mdbm", MDBM_O_RDONLY|MDBM_O_ASYNC, 0666, 0,0);
+$db2 = mdbm_open(TEST_MDBM, MDBM_O_RDONLY|MDBM_O_ASYNC, 0666, 0,0);
 CHECK_FALSE($db2);
 
 $rv = mdbm_close($db2);

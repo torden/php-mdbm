@@ -74,6 +74,8 @@ PHP_FUNCTION(mdbm_close);
 PHP_FUNCTION(mdbm_truncate);
 PHP_FUNCTION(mdbm_sync);
 PHP_FUNCTION(mdbm_fsync);
+PHP_FUNCTION(mdbm_replace_db);
+PHP_FUNCTION(mdbm_replace_file);
 
 PHP_FUNCTION(mdbm_get_lockmode);
 
