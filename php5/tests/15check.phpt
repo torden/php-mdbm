@@ -34,6 +34,9 @@ CHECK_FALSE($db2);
 $rv = mdbm_check($db2, MDBM_CHECK_ALL); //verbose=0
 CHECK_FALSE($rv);
 
+$rv = mdbm_chk_all_page($db2);
+CHECK_FALSE($rv);
+
 $rv = mdbm_close($db2);
 CHECK_FALSE($rv);
 ?>

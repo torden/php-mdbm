@@ -52,8 +52,20 @@ PHP_FUNCTION(mdbm_sync);
 PHP_FUNCTION(mdbm_fsync);
 
 PHP_FUNCTION(mdbm_get_lockmode);
+
 PHP_FUNCTION(mdbm_lock);
+PHP_FUNCTION(mdbm_trylock);
+PHP_FUNCTION(mdbm_plock);
+PHP_FUNCTION(mdbm_tryplock);
+PHP_FUNCTION(mdbm_lock_shared);
+PHP_FUNCTION(mdbm_trylock_shared);
+PHP_FUNCTION(mdbm_lock_smart);
+PHP_FUNCTION(mdbm_trylock_smart);
+    
 PHP_FUNCTION(mdbm_unlock);
+PHP_FUNCTION(mdbm_punlock);
+PHP_FUNCTION(mdbm_unlock_smart);
+
 PHP_FUNCTION(mdbm_islocked);
 PHP_FUNCTION(mdbm_isowned);
 PHP_FUNCTION(mdbm_lock_reset);
@@ -84,6 +96,13 @@ PHP_FUNCTION(mdbm_get_cachemode);
 PHP_FUNCTION(mdbm_get_cachemode_name);
 
 PHP_FUNCTION(mdbm_check);
+PHP_FUNCTION(mdbm_chk_all_page);
+
+PHP_FUNCTION(mdbm_protect);
+
+PHP_FUNCTION(mdbm_lock_pages);
+PHP_FUNCTION(mdbm_unlock_pages);
+
 
 /* 
   	Declare any global variables you may need between the BEGIN
