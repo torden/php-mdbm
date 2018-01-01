@@ -96,6 +96,9 @@ PHP_FUNCTION(mdbm_get_cachemode);
 PHP_FUNCTION(mdbm_get_cachemode_name);
 
 PHP_FUNCTION(mdbm_check);
+PHP_FUNCTION(mdbm_chk_all_page);
+
+PHP_FUNCTION(mdbm_protect);
 
 /* 
   	Declare any global variables you may need between the BEGIN

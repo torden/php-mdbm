@@ -215,6 +215,9 @@ static const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_get_cachemode_name,     arginfo_mdbm_flag)
     
     PHP_FE(mdbm_check,                  arginfo_mdbm_level_verbose)
+    PHP_FE(mdbm_chk_all_page,           arginfo_mdbm_open_res)
+
+    PHP_FE(mdbm_protect,                arginfo_mdbm_pmdbm_flags)
 
     PHP_FE_END
 };
@@ -1603,7 +1606,69 @@ PHP_FUNCTION(mdbm_check) {
         RETURN_FALSE;
     }
 
+    if (verbose < 0 || level > 1 ) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "mdbm_check does not support verbose(=%ld)", verbose);
+        RETURN_FALSE;
+    }
+
+
     rv = mdbm_check(mdbm_link->pmdbm, (int)level, (int)verbose);
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_LONG(rv);
+}
+
+PHP_FUNCTION(mdbm_chk_all_page) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    long level = -1;
+    long verbose = 0;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //fetch the resource
+    FETCH_RES(mdbm_link_index, id);
+
+    rv = mdbm_chk_all_page(mdbm_link->pmdbm);
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_LONG(rv);
+}
+
+PHP_FUNCTION(mdbm_protect) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    long protect = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &protect) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //fetch the resource
+    FETCH_RES(mdbm_link_index, id);
+
+    if (protect < MDBM_PROT_NONE || protect > MDBM_PROT_ACCESS) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "mdbm_protect does not support mdbm_protect(=%ld)", mdbm_protect);
+        RETURN_FALSE;
+    }
+
+    rv = mdbm_protect(mdbm_link->pmdbm, (int)protect);
     if (rv == -1) {
         RETURN_FALSE;
     }

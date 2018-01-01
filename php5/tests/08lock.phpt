@@ -108,6 +108,20 @@ CHECK_FALSE($rv);
 $rv = mdbm_unlock_smart($db, $key, MDBM_RW_LOCKS);
 CHECK_FALSE($rv);
 
+$rv = mdbm_protect($db, MDBM_PROT_READ);
+CHECK_FALSE($rv);
+
+$rv = mdbm_protect($db, MDBM_PROT_WRITE);
+CHECK_FALSE($rv);
+
+$rv = mdbm_protect($db, MDBM_PROT_ACCESS);
+CHECK_FALSE($rv);
+
+    $rv = mdbm_store($db, $key, $key, MDBM_REPLACE);
+    CHECK_FALSE($rv);
+
+$rv = mdbm_protect($db, MDBM_PROT_NONE);
+CHECK_FALSE($rv);
 
 
 ?>
