@@ -14,7 +14,7 @@
 
 ## API
 
-### Support APIs
+### Currently Supported APIs
 
 the following is list of support api on now.
 
