@@ -4,6 +4,13 @@ if [ $CNT -gt 0 ]; then
     echo "FAIL : $CNT";
     cat ./tests/*.mem
     cat ./tests/*.log
+
+OREFILE=$(find . -maxdepth 1 -name "core*" | head -n 1) # find core file
+if [[ -f "$COREFILE" ]]; then 
+    gdb -c "$COREFILE" php -ex "thread apply all bt" -ex "set pagination 0" -batch;
+fi
+
+
     exit 1;
 else
     echo "OK";
