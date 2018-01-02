@@ -6,9 +6,9 @@ if [ $CNT -gt 0 ]; then
     cat ./tests/*.mem
     cat ./tests/*.log
 
-gdb -c ./tests/08lock.mem.core.* php -ex "bt" -ex "set pagination 0" -batch
-gdb -c ./tests/14cache.mem.core.* php -ex "bt" -ex "set pagination 0" -batch
-gdb -c ./tests/16replace.mem.core.* php -ex "bt" -ex "set pagination 0" -batch
+    gdb `which php` -c ./tests/08lock.mem.core.* -ex "thread apply all bt" -ex "set pagination 0" -batch
+    gdb `which php` -c ./tests/14cache.mem.core.* -ex "thread apply all bt" -ex "set pagination 0" -batch
+    gdb `which php` -c ./tests/16replace.mem.core.* -ex "thread apply all bt" -ex "set pagination 0" -batch
 
     exit 1;
 else
