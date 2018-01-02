@@ -132,6 +132,7 @@ static void _close_mdbm_link(zend_resource *rsrc TSRMLS_DC) {
     php_mdbm_open *link = (php_mdbm_open *)rsrc->ptr;
     if (link->pmdbm != NULL) {
         mdbm_close(link->pmdbm);
+        efree(link);
     }
 }
 #endif
