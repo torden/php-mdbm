@@ -56,8 +56,8 @@ the following is list of support api on now.
 
 |*Version*|*Support*|*Test*|
 |---|---|---|
-|5.2.x ~ 5.6x|yes|always|
-|7.0.x ~ 7.x|yes|always|
+|5.2.x ~ 5.6.x|yes|always|
+|7.0 ~ 7.2|yes|always|
 |hhvm|as soon|N/A|
 
 ### MDBM
