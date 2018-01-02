@@ -24,4 +24,4 @@ script:
     - ./configure --with-php-config=`which php-config` --with-mdbm=/usr/local/mdbm/
     - make -j2
     - make test TESTS="-q -v -m"
-    - cat tests/*.mem
+    - ./travis-ci-check.sh
