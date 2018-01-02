@@ -51,9 +51,11 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-run.sh
+run*.sh
 z.php
 .*.swp
 *.swp
 *.bak
 *.core.*
+*.mem
+tags
