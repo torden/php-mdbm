@@ -53,14 +53,14 @@ static int le_link, loglevel, dev_null;
 
 #define CHECK_KEYLEN(key_len) {\
     if (key_len > MDBM_KEYLEN_MAX) {\
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "maximum key length exceeded, (%d > %d)", key_len, MDBM_KEYLEN_MAX);\
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "maximum key length exceeded, (%ld > %d)", key_len, MDBM_KEYLEN_MAX);\
         RETURN_FALSE;\
     }\
 }
 
 #define CHECK_VALLEN(val_len) {\
     if (val_len > MDBM_VALLEN_MAX) {\
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "maximum value length exceeded, (%d > %d)", val_len, MDBM_VALLEN_MAX);\
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "maximum value length exceeded, (%ld > %d)", val_len, MDBM_VALLEN_MAX);\
         RETURN_FALSE;\
     }\
 }
@@ -1727,7 +1727,7 @@ PHP_FUNCTION(mdbm_check) {
     }
 
     if (verbose < 0 || verbose > 1 ) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "mdbm_check does not support verbose(=%ld)", verbose);
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "mdbm_check does not support verbose(=%d)", (int)verbose);
         RETURN_FALSE;
     }
 
@@ -1784,7 +1784,7 @@ PHP_FUNCTION(mdbm_protect) {
     FETCH_RES(mdbm_link_index, id);
 
     if (protect < MDBM_PROT_NONE || protect > MDBM_PROT_ACCESS) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "mdbm_protect does not support mdbm_protect(=%ld)", mdbm_protect);
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "mdbm_protect does not support mdbm_protect(=%ld)", protect);
         RETURN_FALSE;
     }
 
