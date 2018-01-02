@@ -18,6 +18,7 @@ before_install:
     #- git clone https://github.com/yahoo/mdbm.git src_mdbm
 before_script:
     - ulimit -c unlimited -S 
+    - ulimit -s unlimited
 #    - cd src_mdbm/
 #    - make -j2 
 #    - make install
