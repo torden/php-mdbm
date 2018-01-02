@@ -115,6 +115,9 @@ typedef size_t _ZEND_STR_LEN;
 static void _close_mdbm_link(zend_rsrc_list_entry *rsrc TSRMLS_DC) {
 
     php_mdbm_open *link = (php_mdbm_open *)rsrc->ptr;
+    if (link->pmdbm == NULL) {
+        return;
+    }
     void (*handler) (int);
     handler = signal(SIGPIPE, SIG_IGN);
     mdbm_close(link->pmdbm);
@@ -127,7 +130,9 @@ static void _close_mdbm_link(zend_rsrc_list_entry *rsrc TSRMLS_DC) {
 static void _close_mdbm_link(zend_resource *rsrc TSRMLS_DC) {
 
     php_mdbm_open *link = (php_mdbm_open *)rsrc->ptr;
-    mdbm_close(link->pmdbm);
+    if (link->pmdbm != NULL) {
+        mdbm_close(link->pmdbm);
+    }
 }
 #endif
 
