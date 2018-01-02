@@ -6,20 +6,27 @@ php:
     - 5.4
     - 5.5
     - 5.6
+    - 7.0
+    - 7.1
+    - 7.2
 before_install:
     - sudo apt-get update -qq
     - sudo apt-get install -y openssl libcppunit-dev libreadline6 libreadline6-dev valgrind realpath libmodule-install-perl
     - wget https://github.com/torden/go-mdbm/raw/master/pkg/ubuntu/mdbm-Precise_Pangolin.deb
     - sudo dpkg -i mdbm-Precise_Pangolin.deb
+    - sudo apt-get install -y gdb
     #- git clone https://github.com/yahoo/mdbm.git src_mdbm
-#before_script:
+before_script:
+    - ulimit -c unlimited -S 
+    - ulimit -s unlimited
 #    - cd src_mdbm/
 #    - make -j2 
 #    - make install
 #    - cd ..
 script:
-    - cd php5
+    - cd src
     - phpize
     - ./configure --with-php-config=`which php-config` --with-mdbm=/usr/local/mdbm/
     - make -j2
-    - make test TESTS="-q -v -m"
+    - CRASH_PLEASE=1 make test TESTS="-q -v -m"
+    - ./travis-ci-check.sh

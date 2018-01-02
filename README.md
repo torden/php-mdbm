@@ -54,10 +54,11 @@ the following is list of support api on now.
 
 ### PHP
 
-|*Version*|*Support*|*Test*|*Develop*|
-|---|---|---|---|
-|5.x|yes|always|doing|
-|7.x|yes(as soon)|as soon|as soon|
+|*Version*|*Support*|*Test*|
+|---|---|---|
+|5.2.x ~ 5.6x|yes|always|
+|7.0.x ~ 7.x|yes|always|
+|hhvm|as soon|N/A|
 
 ### MDBM
 
@@ -88,14 +89,14 @@ wget https://github.com/torden/go-mdbm/archive/vX.X.X.tar.gz
 tar xvzf vX.X.X.tar.gz
 ```
 
-Compile (for PHP5.x)
+Compile
 
 ```shell
-cd php-mdbm/php5/
+cd php-mdbm/src/
 $PHP_INSTALLED_PATH/bin/phpize
-./configure --with-mdbm=/usr/local/mdbm/
+./configure --with-php-config=$PHP_INSTALLED_PATH/bin/php-config --with-mdbm=/usr/local/mdbm/
 make
-make test
+make test TESTS='-q -m'
 make install
 ```
 
