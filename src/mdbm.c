@@ -1781,7 +1781,13 @@ PHP_FUNCTION(mdbm_get_cachemode_name) {
     pcache_name = mdbm_get_cachemode_name(cacheno); //return value from stack
     retval_len = (int)strlen(pcache_name);
 
+
+#if PHP_VERSION_ID < 70000 // PHP5
+    pretval = copy_strptr((char *)pcache_name, retval_len);
+    _R_STRINGL(pretval, retval_len, 0);
+#else // PHP7
     _R_STRINGL(pcache_name, retval_len, 0);
+#endif
 }
 
 PHP_FUNCTION(mdbm_check) {
