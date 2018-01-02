@@ -31,7 +31,7 @@
 
 #include "php_mdbm.h"
 
-ZEND_DECLARE_MODULE_GLOBALS(mdbm)
+//ZEND_DECLARE_MODULE_GLOBALS(mdbm)
 
 typedef struct _php_mdbm_open {
     MDBM *pmdbm;
@@ -127,11 +127,7 @@ static void _close_mdbm_link(zend_rsrc_list_entry *rsrc TSRMLS_DC) {
 static void _close_mdbm_link(zend_resource *rsrc TSRMLS_DC) {
 
     php_mdbm_open *link = (php_mdbm_open *)rsrc->ptr;
-    void (*handler) (int);
-    handler = signal(SIGPIPE, SIG_IGN);
     mdbm_close(link->pmdbm);
-    signal(SIGPIPE, handler);
-    efree(link);
 }
 #endif
 
@@ -642,7 +638,7 @@ PHP_FUNCTION(mdbm_close) {
     } else {
         zend_list_delete(id);
 #else
-        zend_list_delete(Z_RES_P(mdbm_link_index));
+        zend_list_close(Z_RES_P(mdbm_link_index));
 #endif
     }
 
