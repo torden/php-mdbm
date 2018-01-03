@@ -99,6 +99,7 @@ typedef size_t _ZEND_STR_LEN;
     }\
 }
 
+// several mdbm api use the fprintf
 #define CAPTURE_START() {\
     dev_null = open("/dev/null", O_WRONLY);\
     if (loglevel == -1) {\
@@ -189,6 +190,18 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_pmdbm_flags, 0, 0, 2)
     ZEND_ARG_INFO(0, flags)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_pmdbm_optional_flags, 0, 0, 2)
+    ZEND_ARG_INFO(0, pmdbm)
+    ZEND_ARG_INFO(0, flags)
+ZEND_END_ARG_INFO()
+
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_pmdbm_pagenum, 0, 0, 2)
+    ZEND_ARG_INFO(0, pmdbm)
+    ZEND_ARG_INFO(0, pagenum)
+ZEND_END_ARG_INFO()
+
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_lock_key_flags, 0, 0, 3)
     ZEND_ARG_INFO(0, pmdbm)
     ZEND_ARG_INFO(0, key)
@@ -231,6 +244,7 @@ ZEND_END_ARG_INFO()
 const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_log_minlevel,           arginfo_mdbm_log_minlevel)
     PHP_FE(mdbm_open,                   arginfo_mdbm_open)
+    PHP_FE(mdbm_dup_handle,             arginfo_mdbm_pmdbm_optional_flags)
     PHP_FE(mdbm_close,                  arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_truncate,               arginfo_mdbm_pmdbm)
 
@@ -283,6 +297,7 @@ const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_nextkey,                arginfo_mdbm_pmdbm)
 
     PHP_FE(mdbm_count_records,          arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_count_pages,            arginfo_mdbm_pmdbm)
 
     PHP_FE(mdbm_set_cachemode,          arginfo_mdbm_pmdbm_flags)
     PHP_FE(mdbm_get_cachemode,          arginfo_mdbm_pmdbm)
@@ -290,11 +305,16 @@ const zend_function_entry mdbm_functions[] = {
     
     PHP_FE(mdbm_check,                  arginfo_mdbm_level_verbose)
     PHP_FE(mdbm_chk_all_page,           arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_chk_page,               arginfo_mdbm_pmdbm_pagenum)
 
     PHP_FE(mdbm_protect,                arginfo_mdbm_pmdbm_flags)
     
     PHP_FE(mdbm_lock_pages,             arginfo_mdbm_pmdbm_flags)
     PHP_FE(mdbm_unlock_pages,           arginfo_mdbm_pmdbm_flags)
+
+    PHP_FE(mdbm_get_hash_value,         arginfo_mdbm_pmdbm_flags)
+    PHP_FE(mdbm_get_page,               arginfo_mdbm_key)
+    PHP_FE(mdbm_get_magic_number,       arginfo_mdbm_pmdbm)
 
     PHP_FE_END
 };
@@ -605,7 +625,9 @@ PHP_FUNCTION(mdbm_open) {
 
 
     //open the mdbm
+    CAPTURE_START();
     pmdbm = mdbm_open(pfilepath, (int)flags, (int)mode, (int)size, (int)resize);
+    CAPTURE_END();
     if (!pmdbm) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to open the mdbm");
         RETURN_FALSE;
@@ -619,6 +641,50 @@ PHP_FUNCTION(mdbm_open) {
     RETURN_RES(zend_register_resource(mdbm_link, le_link));
 #endif
 }
+
+PHP_FUNCTION(mdbm_dup_handle) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    php_mdbm_open *mdbm_new_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    MDBM *pnew_mdbm = NULL;
+    _ZEND_LONG flags = 0; // flags Reserved for future use
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //fetch the resource
+    FETCH_RES(mdbm_link_index, id);
+
+    CAPTURE_START();
+    pnew_mdbm = mdbm_dup_handle(mdbm_link->pmdbm, flags); //flags Reserved for future use
+    CAPTURE_END();
+    if (pnew_mdbm == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to duplicate an existing database handle");
+        RETURN_FALSE;
+    }
+
+    //create the link
+    mdbm_new_link = (php_mdbm_open *) safe_emalloc(sizeof(php_mdbm_open), 1, 0);
+    if (!mdbm_link) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory for a MDBM Resource link");
+    }
+
+
+    mdbm_new_link->pmdbm = pnew_mdbm;
+
+#if PHP_VERSION_ID < 70000
+    ZEND_REGISTER_RESOURCE(return_value, mdbm_new_link, le_link);
+#else
+    RETURN_RES(zend_register_resource(mdbm_new_link, le_link));
+#endif
+}
+
 
 
 PHP_FUNCTION(mdbm_close) {
@@ -688,7 +754,9 @@ PHP_FUNCTION(mdbm_replace_db) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_replace_db(mdbm_link->pmdbm, pnewfile);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -711,7 +779,9 @@ PHP_FUNCTION(mdbm_replace_file) {
         RETURN_FALSE;
     }
 
+    CAPTURE_START();
     rv = mdbm_replace_file(poldfile, pnewfile);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -734,7 +804,9 @@ PHP_FUNCTION(mdbm_sync) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_sync(mdbm_link->pmdbm);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -757,7 +829,9 @@ PHP_FUNCTION(mdbm_fsync) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_fsync(mdbm_link->pmdbm);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -780,7 +854,9 @@ PHP_FUNCTION(mdbm_get_lockmode) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_get_lockmode(mdbm_link->pmdbm);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -803,7 +879,9 @@ PHP_FUNCTION(mdbm_lock) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_lock(mdbm_link->pmdbm);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -826,7 +904,9 @@ PHP_FUNCTION(mdbm_trylock) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_trylock(mdbm_link->pmdbm);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -858,7 +938,9 @@ PHP_FUNCTION(mdbm_plock) {
     datum_key.dptr = pkey;
     datum_key.dsize = (int)key_len;
 
+    CAPTURE_START();
     rv = mdbm_plock(mdbm_link->pmdbm, &datum_key, (int)flags);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -890,15 +972,15 @@ PHP_FUNCTION(mdbm_tryplock) {
     datum_key.dptr = pkey;
     datum_key.dsize = (int)key_len;
 
+    CAPTURE_START();
     rv = mdbm_tryplock(mdbm_link->pmdbm, &datum_key, (int)flags);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
 
     RETURN_TRUE;
 }
-
-
 
 PHP_FUNCTION(mdbm_lock_shared) {
 
@@ -915,7 +997,9 @@ PHP_FUNCTION(mdbm_lock_shared) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_lock_shared(mdbm_link->pmdbm);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -938,7 +1022,9 @@ PHP_FUNCTION(mdbm_trylock_shared) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_trylock_shared(mdbm_link->pmdbm);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -970,7 +1056,9 @@ PHP_FUNCTION(mdbm_lock_smart) {
     datum_key.dptr = pkey;
     datum_key.dsize = (int)key_len;
 
+    CAPTURE_START();
     rv = mdbm_lock_smart(mdbm_link->pmdbm, &datum_key, (int)flags);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1002,7 +1090,9 @@ PHP_FUNCTION(mdbm_trylock_smart) {
     datum_key.dptr = pkey;
     datum_key.dsize = (int)key_len;
 
+    CAPTURE_START();
     rv = mdbm_trylock_smart(mdbm_link->pmdbm, &datum_key, (int)flags);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1025,7 +1115,9 @@ PHP_FUNCTION(mdbm_unlock) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_unlock(mdbm_link->pmdbm);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1057,7 +1149,9 @@ PHP_FUNCTION(mdbm_punlock) {
     datum_key.dptr = pkey;
     datum_key.dsize = (int)key_len;
 
+    CAPTURE_START();
     rv = mdbm_punlock(mdbm_link->pmdbm, &datum_key, (int)flags);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1089,7 +1183,9 @@ PHP_FUNCTION(mdbm_unlock_smart) {
     datum_key.dptr = pkey;
     datum_key.dsize = (int)key_len;
 
+    CAPTURE_START();
     rv = mdbm_unlock_smart(mdbm_link->pmdbm, &datum_key, (int)flags);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1113,7 +1209,9 @@ PHP_FUNCTION(mdbm_islocked) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_islocked(mdbm_link->pmdbm);
+    CAPTURE_END();
     if (rv == 0) {
         RETURN_FALSE;
     } else if (rv == 1) {
@@ -1139,7 +1237,9 @@ PHP_FUNCTION(mdbm_isowned) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_isowned(mdbm_link->pmdbm);
+    CAPTURE_END();
     if (rv == 0) {
         RETURN_FALSE;
     } else if (rv == 1) {
@@ -1166,9 +1266,9 @@ PHP_FUNCTION(mdbm_lock_reset) {
     }
 
     //flags Reserved for future use, and must be 0.
-    CAPTURE_START();
+        CAPTURE_START();
         rv = mdbm_lock_reset(dbfn, 0);
-    CAPTURE_END();
+        CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1199,7 +1299,9 @@ PHP_FUNCTION(mdbm_delete_lockfiles) {
         RETURN_TRUE;
     }
 
+    CAPTURE_START();
     rv = mdbm_delete_lockfiles((const char *)fn);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1222,7 +1324,9 @@ PHP_FUNCTION(mdbm_preload) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_preload(mdbm_link->pmdbm);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1245,7 +1349,9 @@ PHP_FUNCTION(mdbm_get_errno) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_get_errno(mdbm_link->pmdbm);
+    CAPTURE_END();
     RETURN_LONG(rv);
 }
 
@@ -1264,7 +1370,9 @@ PHP_FUNCTION(mdbm_get_version) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_get_version(mdbm_link->pmdbm);
+    CAPTURE_END();
     RETURN_LONG(rv);
 }
 
@@ -1284,7 +1392,9 @@ PHP_FUNCTION(mdbm_get_size) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_get_size(mdbm_link->pmdbm);
+    CAPTURE_END();
     RETURN_LONG(rv);
 }
 
@@ -1303,7 +1413,9 @@ PHP_FUNCTION(mdbm_get_page_size) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_get_page_size(mdbm_link->pmdbm);
+    CAPTURE_END();
     RETURN_LONG(rv);
 }
 
@@ -1322,7 +1434,9 @@ PHP_FUNCTION(mdbm_get_hash) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_get_hash(mdbm_link->pmdbm);
+    CAPTURE_END();
 
     RETURN_LONG(rv);
 }
@@ -1349,7 +1463,9 @@ PHP_FUNCTION(mdbm_set_hash) {
         RETURN_FALSE;
     }
 
+    CAPTURE_START();
     rv = mdbm_set_hash(mdbm_link->pmdbm, (int)hash);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1372,7 +1488,9 @@ PHP_FUNCTION(mdbm_get_limit_size) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_get_limit_size(mdbm_link->pmdbm);
+    CAPTURE_END();
 
     RETURN_LONG(rv);
 }
@@ -1453,7 +1571,9 @@ mdbm_store_r (db=0x7d44530, key=key@entry=0xffeffb830, val=val@entry=0xffeffb820
     val.dsize = (int)val_len;
 
 
+    CAPTURE_START();
     rv = mdbm_store(mdbm_link->pmdbm, key, val, (int)flags);
+    CAPTURE_END();
 
     efree(psetkey);
     efree(psetval);
@@ -1493,7 +1613,9 @@ PHP_FUNCTION(mdbm_fetch) {
     key.dptr = pkey;
     key.dsize = (int)key_len;
 
+    CAPTURE_START();
     val = mdbm_fetch(mdbm_link->pmdbm, key);
+    CAPTURE_END();
     if (val.dptr == NULL) {
         RETURN_FALSE;
     }
@@ -1535,7 +1657,9 @@ PHP_FUNCTION(mdbm_delete) {
     key.dptr = pkey;
     key.dsize = (int)key_len;
 
+    CAPTURE_START();
     rv = mdbm_delete(mdbm_link->pmdbm, key);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1563,7 +1687,9 @@ PHP_FUNCTION(mdbm_first) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     kv = mdbm_first(mdbm_link->pmdbm);
+    CAPTURE_END();
     if (kv.key.dptr == NULL || kv.val.dptr == NULL) {
         RETURN_FALSE;
     }
@@ -1603,7 +1729,9 @@ PHP_FUNCTION(mdbm_next) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     kv = mdbm_next(mdbm_link->pmdbm);
+    CAPTURE_END();
     if (kv.key.dptr == NULL || kv.val.dptr == NULL) {
         RETURN_FALSE;
     }
@@ -1642,7 +1770,9 @@ PHP_FUNCTION(mdbm_firstkey) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     key = mdbm_firstkey(mdbm_link->pmdbm);
+    CAPTURE_END();
     if (key.dptr == NULL) {
         RETURN_FALSE;
     }
@@ -1674,7 +1804,9 @@ PHP_FUNCTION(mdbm_nextkey) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     val = mdbm_nextkey(mdbm_link->pmdbm);
+    CAPTURE_END();
     if (val.dptr == NULL) {
         RETURN_FALSE;
     }
@@ -1703,7 +1835,30 @@ PHP_FUNCTION(mdbm_count_records) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_count_records(mdbm_link->pmdbm);
+    CAPTURE_END();
+    RETURN_LONG(rv);
+}
+
+PHP_FUNCTION(mdbm_count_pages) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    uint64_t rv = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //fetch the resource
+    FETCH_RES(mdbm_link_index, id);
+
+    CAPTURE_START();
+    rv = mdbm_count_pages(mdbm_link->pmdbm);
+    CAPTURE_END();
     RETURN_LONG(rv);
 }
 
@@ -1729,7 +1884,9 @@ PHP_FUNCTION(mdbm_set_cachemode) {
         RETURN_FALSE;
     }
 
+    CAPTURE_START();
     rv = mdbm_set_cachemode(mdbm_link->pmdbm, (int)flag);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1752,7 +1909,9 @@ PHP_FUNCTION(mdbm_get_cachemode) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_get_cachemode(mdbm_link->pmdbm);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1778,7 +1937,9 @@ PHP_FUNCTION(mdbm_get_cachemode_name) {
         RETURN_FALSE;
     }
 
+    CAPTURE_START();
     pcache_name = mdbm_get_cachemode_name(cacheno); //return value from stack
+    CAPTURE_END();
     retval_len = (int)strlen(pcache_name);
 
 
@@ -1818,8 +1979,9 @@ PHP_FUNCTION(mdbm_check) {
         RETURN_FALSE;
     }
 
-
+    CAPTURE_START();
     rv = mdbm_check(mdbm_link->pmdbm, (int)level, (int)verbose);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1834,9 +1996,6 @@ PHP_FUNCTION(mdbm_chk_all_page) {
     int id = -1;
     int rv = -1;
 
-    _ZEND_LONG level = -1;
-    _ZEND_LONG verbose = 0;
-
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
         RETURN_FALSE;
@@ -1845,12 +2004,41 @@ PHP_FUNCTION(mdbm_chk_all_page) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_chk_all_page(mdbm_link->pmdbm);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
 
     RETURN_LONG(rv);
+}
+
+PHP_FUNCTION(mdbm_chk_page) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    _ZEND_LONG pagenum = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &pagenum) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //fetch the resource
+    FETCH_RES(mdbm_link_index, id);
+
+    CAPTURE_START();
+    rv = mdbm_chk_page(mdbm_link->pmdbm, (int)pagenum);
+    CAPTURE_END();
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
 }
 
 PHP_FUNCTION(mdbm_protect) {
@@ -1875,7 +2063,9 @@ PHP_FUNCTION(mdbm_protect) {
         RETURN_FALSE;
     }
 
+    CAPTURE_START();
     rv = mdbm_protect(mdbm_link->pmdbm, (int)protect);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1898,7 +2088,9 @@ PHP_FUNCTION(mdbm_lock_pages) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_lock_pages(mdbm_link->pmdbm);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1921,12 +2113,117 @@ PHP_FUNCTION(mdbm_unlock_pages) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    CAPTURE_START();
     rv = mdbm_unlock_pages(mdbm_link->pmdbm);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
 
     RETURN_TRUE;
+}
+
+PHP_FUNCTION(mdbm_get_hash_value) {
+
+    int id = -1;
+    int rv = -1;
+    uint32_t hashv = -1;
+    datum key;
+
+    char *pkey = NULL;
+    _ZEND_STR_LEN key_len = -1;
+    _ZEND_LONG hfc = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl", &pkey, &key_len, &hfc) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    if (hfc < MDBM_HASH_CRC32 || hfc > MDBM_MAX_HASH) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "mdbm_set_hash does not support hash(=%ld)", hfc);
+        RETURN_FALSE;
+    }
+
+    if (key_len < 1) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required! hashValue(length=%d)", (int)key_len);
+        RETURN_FALSE;
+    }
+
+    //make a datum
+    key.dptr = pkey;
+    key.dsize = (int)key_len;
+
+    CAPTURE_START();
+    rv = mdbm_get_hash_value(key, hfc, &hashv);
+    CAPTURE_END();
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_LONG(hashv);
+}
+
+PHP_FUNCTION(mdbm_get_page) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    mdbm_ubig_t rv = -1;
+    datum key;
+
+    char *pkey = NULL;
+    _ZEND_STR_LEN key_len = 0;
+
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //fetch the resource
+    FETCH_RES(mdbm_link_index, id);
+
+    //check the length of key
+    CHECK_KEYLEN(key_len);
+
+    //make a datum
+    key.dptr = pkey;
+    key.dsize = (int)key_len;
+
+    CAPTURE_START();
+    rv = mdbm_get_page(mdbm_link->pmdbm, &key);
+    CAPTURE_END();
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_LONG((long)rv);
+}
+
+PHP_FUNCTION(mdbm_get_magic_number) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+    uint32_t magic = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //fetch the resource
+    FETCH_RES(mdbm_link_index, id);
+
+    CAPTURE_START();
+    rv = mdbm_get_magic_number(mdbm_link->pmdbm, &magic);
+    CAPTURE_END();
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_LONG((long)magic);
 }
 
 /*

@@ -64,6 +64,7 @@ PHP_MINFO_FUNCTION(mdbm);
 
 PHP_FUNCTION(mdbm_log_minlevel);
 PHP_FUNCTION(mdbm_open);
+PHP_FUNCTION(mdbm_dup_handle);
 PHP_FUNCTION(mdbm_close);
 PHP_FUNCTION(mdbm_truncate);
 PHP_FUNCTION(mdbm_sync);
@@ -110,6 +111,7 @@ PHP_FUNCTION(mdbm_firstkey);
 PHP_FUNCTION(mdbm_nextkey);
 
 PHP_FUNCTION(mdbm_count_records);
+PHP_FUNCTION(mdbm_count_pages);
 
 PHP_FUNCTION(mdbm_set_cachemode);
 PHP_FUNCTION(mdbm_get_cachemode);
@@ -117,11 +119,17 @@ PHP_FUNCTION(mdbm_get_cachemode_name);
 
 PHP_FUNCTION(mdbm_check);
 PHP_FUNCTION(mdbm_chk_all_page);
+PHP_FUNCTION(mdbm_chk_page);
+
 
 PHP_FUNCTION(mdbm_protect);
 
 PHP_FUNCTION(mdbm_lock_pages);
 PHP_FUNCTION(mdbm_unlock_pages);
+
+PHP_FUNCTION(mdbm_get_hash_value);
+PHP_FUNCTION(mdbm_get_page);
+PHP_FUNCTION(mdbm_get_magic_number);
 
 
 /* 
