@@ -36,6 +36,7 @@ printf("[*] mdbm_get_page_size : %d\n", mdbm_get_page_size($db));
 printf("[*] mdbm_get_hash : %d\n", mdbm_get_hash($db));
 printf("[*] mdbm_count_records : %d\n", mdbm_count_records($db));
 printf("[*] mdbm_get_limit_size : %d\n", mdbm_get_limit_size($db));
+printf("[*] mdbm_count_pages : %d\n", mdbm_count_pages($db));
 
 
 $rv = mdbm_close($db);
@@ -49,3 +50,4 @@ CHECK_FALSE($rv);
 [*] mdbm_get_hash : 5
 [*] mdbm_count_records : 10
 [*] mdbm_get_limit_size : 0
+[*] mdbm_count_pages : 2
