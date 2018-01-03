@@ -37,7 +37,7 @@ typedef struct _php_mdbm_open {
     MDBM *pmdbm;
 } php_mdbm_open;
 
-static int le_link, loglevel, dev_null;
+static int le_link, loglevel, dev_null, org_stdout, org_stderr;
 
 #define LE_MDBM_NAME "PHP-MDBM"
 
@@ -102,6 +102,8 @@ typedef size_t _ZEND_STR_LEN;
 // several mdbm api use the fprintf
 #define CAPTURE_START() {\
     dev_null = open("/dev/null", O_WRONLY);\
+    org_stdout = dup(STDOUT_FILENO);\
+    org_stderr = dup(STDERR_FILENO);\
     if (loglevel == -1) {\
         dup2(dev_null, STDOUT_FILENO);\
         dup2(dev_null, STDERR_FILENO);\
@@ -110,6 +112,10 @@ typedef size_t _ZEND_STR_LEN;
 
 #define CAPTURE_END() {\
     close(dev_null);\
+    if (loglevel == -1) {\
+        dup2(org_stdout, STDOUT_FILENO);\
+        dup2(org_stderr, STDERR_FILENO);\
+    }\
 }
 
 #if PHP_VERSION_ID < 70000

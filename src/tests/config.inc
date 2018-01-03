@@ -9,7 +9,7 @@ function FAIL() { echo "FAIL\n"; (debug_backtrace()); }
 function CHECK_FALSE($rv) {
     if ($rv === false) {
         echo "FAIL\n";
-        echo "rv : $rv\n";
+        echo "rv : "; echo (int)$rv; echo"\n";
         var_dump(debug_backtrace());
     }
 }
@@ -17,7 +17,7 @@ function CHECK_FALSE($rv) {
 function CHECK_NOT_FALSE($rv) {
     if ($rv !== false) {
         echo "FAIL\n";
-        echo "rv : $rv\n";
+        echo "rv : "; echo (int)$rv; echo"\n";
         var_dump(debug_backtrace());
     }
 }
