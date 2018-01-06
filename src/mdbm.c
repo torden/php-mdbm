@@ -619,10 +619,27 @@ PHP_FUNCTION(mdbm_open) {
         RETURN_FALSE;
     }
 
+	//protect : sigfault
+	if (flags == (flags | MDBM_O_CREAT) && flags == (flags | MDBM_PROTECT)) {
+	    php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to open the MDBM, not support create flags with MDBM_PROTECT");
+        RETURN_FALSE;
+	}
+
+	if (flags == (flags | MDBM_O_ASYNC) && flags == (flags | MDBM_O_FSYNC)) {
+	    php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to open the MDBM, not support mixed sync flags (MDBM_O_FSYNC, MDBM_O_ASYNC)");
+        RETURN_FALSE;
+	}
+
+	if (flags == (flags | MDBM_O_RDONLY) && flags == (flags | MDBM_O_WRONLY)) {
+	    php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to open the MDBM, not support mixed access flags (MDBM_O_RDONLY, MDBM_O_WRONLY, MDBM_O_RDWR)");
+        RETURN_FALSE;
+	}
+
     //create the link
     mdbm_link = (php_mdbm_open *) safe_emalloc(sizeof(php_mdbm_open), 1, 0);
     if (!mdbm_link) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory for a MDBM Resource link");
+        RETURN_FALSE;
     }
 
     //disable the log to stderr
