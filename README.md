@@ -1,6 +1,6 @@
 # PHP-mdbm
 
-- PHP-mdbm is a PHP binds to Yahoo! MDBM C API.
+- PHP-mdbm is a PHP binds to [Yahoo! MDBM C API.](https://github.com/yahoo/mdbm/)
 - MDBM is a super-fast memory-mapped key/value store.
 - MDBM is an ndbm work-alike hashed database library based on sdbm which is based on Per-Aake Larson’s Dynamic Hashing algorithms.
 - MDBM is a high-performance, memory-mapped hash database similar to the homegrown libhash.
