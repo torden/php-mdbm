@@ -131,7 +131,7 @@ mdbm_close($db);
 ?>
 ```
 
-### Fetching and updating records in-place
+### Fetching records in-place
 
 ```php
 <?php
