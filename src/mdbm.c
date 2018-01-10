@@ -1605,6 +1605,11 @@ mdbm_store_r (db=0x7d44530, key=key@entry=0xffeffb830, val=val@entry=0xffeffb820
         RETURN_FALSE;
     }
 
+	if (rv == 1 && flags == (flags | MDBM_INSERT)) { //the key already exists
+		php_error_docref(NULL TSRMLS_CC, E_ERROR, "the key(=%s) already exists", pkey);
+        RETURN_FALSE;
+	}
+
     RETURN_TRUE;
 }
 
