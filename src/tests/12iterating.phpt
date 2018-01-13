@@ -10,7 +10,7 @@ CHECK_FALSE($db);
 
 for($i=0;$i<10;$i++) {
     $v =  rand(1,65535);
-    $rv = mdbm_store($db, $i, $v);
+    $rv = mdbm_store($db, $i, $v, MDBM_REPLACE);
     CHECK_FALSE($rv);
 }
 
@@ -27,7 +27,7 @@ $key = mdbm_firstkey($db2);
 while($key != false) {
 
     echo "$key\n";
-    $key = mdbm_nextkey($db2);
+    $key = mdbm_nextkey($db2, MDBM_REPLACE);
 }
 
 $rv = mdbm_close($db2);

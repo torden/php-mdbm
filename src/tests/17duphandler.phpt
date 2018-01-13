@@ -11,7 +11,7 @@ CHECK_FALSE($db);
 
 for($i=0;$i<10;$i++) {
     $v =  rand(1,65535);
-    $rv = mdbm_store($db, $i, $v);
+    $rv = mdbm_store($db, $i, $v, MDBM_REPLACE);
     CHECK_FALSE($rv);
 }
 
@@ -22,7 +22,7 @@ $db2 = mdbm_dup_handle($db);
 CHECK_FALSE($rv);
 for($i=0;$i<10;$i++) {
     $v =  rand(1,65535);
-    $rv = mdbm_store($db2, $i, $v);
+    $rv = mdbm_store($db2, $i, $v, MDBM_REPLACE);
     CHECK_FALSE($rv);
 }
 
