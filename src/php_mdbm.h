@@ -110,6 +110,9 @@ PHP_FUNCTION(mdbm_next);
 PHP_FUNCTION(mdbm_firstkey);
 PHP_FUNCTION(mdbm_nextkey);
 
+PHP_FUNCTION(mdbm_first_r);
+PHP_FUNCTION(mdbm_next_r);
+
 PHP_FUNCTION(mdbm_count_records);
 PHP_FUNCTION(mdbm_count_pages);
 

@@ -31,10 +31,19 @@
 
 #include "php_mdbm.h"
 
+
+#define HASHKEY_KEY     "key"
+#define HASHKEY_VAL     "val"
+#define HASHKEY_PAGENO  "__pageno"
+#define HASHKEY_NEXT    "__next"
+
+
+
 //ZEND_DECLARE_MODULE_GLOBALS(mdbm)
 
 typedef struct _php_mdbm_open {
     MDBM *pmdbm;
+    MDBM_ITER iter;
 } php_mdbm_open;
 
 static int le_link, loglevel, dev_null, org_stdout, org_stderr;
@@ -100,6 +109,7 @@ typedef size_t _ZEND_STR_LEN;
 }
 
 // several mdbm api use the fprintf
+/*
 #define CAPTURE_START() {\
     dev_null = open("/dev/null", O_WRONLY);\
     org_stdout = dup(STDOUT_FILENO);\
@@ -117,6 +127,9 @@ typedef size_t _ZEND_STR_LEN;
         dup2(org_stderr, STDERR_FILENO);\
     }\
 }
+*/
+#define CAPTURE_START()
+#define CAPTURE_END() 
 
 #if PHP_VERSION_ID < 70000
 static void _close_mdbm_link(zend_rsrc_list_entry *rsrc TSRMLS_DC) {
@@ -245,7 +258,13 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_oldfile_newfile, 0, 0, 2)
     ZEND_ARG_INFO(0, oldfile)
     ZEND_ARG_INFO(0, newfile)
 ZEND_END_ARG_INFO()
+  
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_pmdbm_iter, 0, 0, 1)
+    ZEND_ARG_INFO(0, pmdbm)
+    ZEND_ARG_INFO(0, iter)
+ZEND_END_ARG_INFO()
 
+  
 
 const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_log_minlevel,           arginfo_mdbm_log_minlevel)
@@ -301,6 +320,8 @@ const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_next,                   arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_firstkey,               arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_nextkey,                arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_first_r,                arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_next_r,                 arginfo_mdbm_pmdbm_iter)
 
     PHP_FE(mdbm_count_records,          arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_count_pages,            arginfo_mdbm_pmdbm)
@@ -646,6 +667,8 @@ PHP_FUNCTION(mdbm_open) {
     setenv("MDBM_LOG_LEVEL","-1",1);      
     mdbm_log_minlevel(-1);
 
+    
+
 
     //open the mdbm
     CAPTURE_START();
@@ -657,6 +680,7 @@ PHP_FUNCTION(mdbm_open) {
     }
 
     mdbm_link->pmdbm = pmdbm;
+    MDBM_ITER_INIT(&(*mdbm_link).iter);
 
 #if PHP_VERSION_ID < 70000
     ZEND_REGISTER_RESOURCE(return_value, mdbm_link, le_link);
@@ -700,6 +724,7 @@ PHP_FUNCTION(mdbm_dup_handle) {
 
 
     mdbm_new_link->pmdbm = pnew_mdbm;
+    MDBM_ITER_INIT(&(*mdbm_new_link).iter);
 
 #if PHP_VERSION_ID < 70000
     ZEND_REGISTER_RESOURCE(return_value, mdbm_new_link, le_link);
@@ -707,8 +732,6 @@ PHP_FUNCTION(mdbm_dup_handle) {
     RETURN_RES(zend_register_resource(mdbm_new_link, le_link));
 #endif
 }
-
-
 
 PHP_FUNCTION(mdbm_close) {
 
@@ -947,7 +970,7 @@ PHP_FUNCTION(mdbm_plock) {
     char *pkey = NULL;
     _ZEND_STR_LEN key_len = 0;
     _ZEND_LONG flags = -1;
-    datum datum_key;
+    datum datum_key = {0x00,};
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
@@ -981,7 +1004,7 @@ PHP_FUNCTION(mdbm_tryplock) {
     char *pkey = NULL;
     _ZEND_STR_LEN key_len = 0;
     _ZEND_LONG flags = -1;
-    datum datum_key;
+    datum datum_key = {0x00,};
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
@@ -1065,7 +1088,7 @@ PHP_FUNCTION(mdbm_lock_smart) {
     char *pkey = NULL;
     _ZEND_STR_LEN key_len = 0;
     _ZEND_LONG flags = -1;
-    datum datum_key;
+    datum datum_key = {0x00,};
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
@@ -1099,7 +1122,7 @@ PHP_FUNCTION(mdbm_trylock_smart) {
     char *pkey = NULL;
     _ZEND_STR_LEN key_len = 0;
     _ZEND_LONG flags = -1;
-    datum datum_key;
+    datum datum_key = {0x00,};
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
@@ -1158,7 +1181,7 @@ PHP_FUNCTION(mdbm_punlock) {
     char *pkey = NULL;
     _ZEND_STR_LEN key_len = 0;
     _ZEND_LONG flags = -1;
-    datum datum_key;
+    datum datum_key = {0x00,};
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
@@ -1192,7 +1215,7 @@ PHP_FUNCTION(mdbm_unlock_smart) {
     char *pkey = NULL;
     _ZEND_STR_LEN key_len = 0;
     _ZEND_LONG flags = -1;
-    datum datum_key;
+    datum datum_key = {0x00,};
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
@@ -1554,7 +1577,8 @@ PHP_FUNCTION(mdbm_store) {
     char *pval = NULL;
     _ZEND_STR_LEN val_len = 0;
     _ZEND_LONG  flags = MDBM_INSERT;
-    datum key, val;
+    datum key = {0x00,};
+    datum val = {0x00,};
 
     char *psetkey = NULL;
     char *psetval = NULL;
@@ -1619,7 +1643,8 @@ PHP_FUNCTION(mdbm_fetch) {
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
     int rv = -1;
-    datum key, val;
+    datum key = {0x00,};
+    datum val = {0x00,};
 
     char *pkey = NULL;
     _ZEND_STR_LEN key_len = 0;
@@ -1663,7 +1688,7 @@ PHP_FUNCTION(mdbm_delete) {
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
     int rv = -1;
-    datum key;
+    datum key = {0x00,};
 
     char *pkey = NULL;
     _ZEND_STR_LEN key_len = 0;
@@ -1695,7 +1720,6 @@ PHP_FUNCTION(mdbm_delete) {
     RETURN_TRUE;
 }
 
-
 PHP_FUNCTION(mdbm_first) {
 
     zval *mdbm_link_index = NULL;
@@ -1703,7 +1727,7 @@ PHP_FUNCTION(mdbm_first) {
     int id = -1;
     int rv = -1;
 
-    kvpair kv;
+    kvpair kv = {0x00,};
     char *pretkey = NULL;
     char *pretval = NULL;
 
@@ -1734,8 +1758,8 @@ PHP_FUNCTION(mdbm_first) {
 
     array_init(return_value);
 
-    _ADD_ASSOC_STRINGL(return_value, "key", pretkey, kv.key.dsize, 0);
-    _ADD_ASSOC_STRINGL(return_value, "value", pretval, kv.val.dsize, 0);
+    _ADD_ASSOC_STRINGL(return_value, HASHKEY_KEY, pretkey, kv.key.dsize, 0);
+    _ADD_ASSOC_STRINGL(return_value, HASHKEY_VAL, pretval, kv.val.dsize, 0);
 }
 
 PHP_FUNCTION(mdbm_next) {
@@ -1745,7 +1769,7 @@ PHP_FUNCTION(mdbm_next) {
     int id = -1;
     int rv = -1;
 
-    kvpair kv;
+    kvpair kv = {0x00,};
     char *pretkey = NULL;
     char *pretval = NULL;
 
@@ -1776,8 +1800,8 @@ PHP_FUNCTION(mdbm_next) {
 
     array_init(return_value);
 
-    _ADD_ASSOC_STRINGL(return_value, "key", pretkey, kv.key.dsize, 0);
-    _ADD_ASSOC_STRINGL(return_value, "value", pretval, kv.val.dsize, 0);
+    _ADD_ASSOC_STRINGL(return_value, HASHKEY_KEY, pretkey, kv.key.dsize, 0);
+    _ADD_ASSOC_STRINGL(return_value, HASHKEY_VAL, pretval, kv.val.dsize, 0);
 }
 
 PHP_FUNCTION(mdbm_firstkey) {
@@ -1787,7 +1811,7 @@ PHP_FUNCTION(mdbm_firstkey) {
     int id = -1;
     int rv = -1;
 
-    datum key;
+    datum key = {0x00,};
     char *pretkey = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
@@ -1821,7 +1845,7 @@ PHP_FUNCTION(mdbm_nextkey) {
     int id = -1;
     int rv = -1;
 
-    datum val;
+    datum val = {0x00,};
     char *pretval = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
@@ -1847,6 +1871,155 @@ PHP_FUNCTION(mdbm_nextkey) {
 
     _R_STRINGL(pretval, val.dsize, 0);
 }
+
+
+PHP_FUNCTION(mdbm_first_r) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    MDBM_ITER arg_iter;
+    MDBM_ITER *parg_iter = &arg_iter;
+
+    int id = -1;
+    int rv = -1;
+
+    kvpair kv = {0x00,};
+    char *pretkey = NULL;
+    char *pretval = NULL;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //fetch the resource
+    FETCH_RES(mdbm_link_index, id);
+
+    MDBM_ITER_INIT(parg_iter);
+
+fprintf(stdout, "[F-I] m_pageno : %d , m_next : %d\n", parg_iter->m_pageno, parg_iter->m_next);
+
+    CAPTURE_START();
+    kv = mdbm_first_r(mdbm_link->pmdbm, parg_iter);
+    CAPTURE_END();
+
+fprintf(stdout, "[F-O] m_pageno : %d , m_next : %d\n", parg_iter->m_pageno, parg_iter->m_next);
+(*mdbm_link).iter.m_pageno = parg_iter->m_pageno;
+(*mdbm_link).iter.m_next = parg_iter->m_next ;
+
+    if (kv.key.dptr == NULL || kv.val.dptr == NULL) {
+        RETURN_FALSE;
+    }
+
+    pretkey = copy_strptr(kv.key.dptr, kv.key.dsize);
+    if (pretkey == NULL) {
+        RETURN_FALSE;
+    }
+
+    pretval = copy_strptr(kv.val.dptr, kv.val.dsize);
+    if (pretval == NULL) {
+        RETURN_FALSE;
+    }
+
+    array_init(return_value);
+
+    _ADD_ASSOC_STRINGL(return_value, HASHKEY_KEY, pretkey, kv.key.dsize, 0);
+    _ADD_ASSOC_STRINGL(return_value, HASHKEY_VAL, pretval, kv.val.dsize, 0);
+    add_assoc_long(return_value, HASHKEY_PAGENO, (*mdbm_link).iter.m_pageno);
+    add_assoc_long(return_value, HASHKEY_NEXT, (*mdbm_link).iter.m_next);
+}
+
+PHP_FUNCTION(mdbm_next_r) {
+
+    zval *mdbm_link_index = NULL;
+    zval *arr = NULL;
+    zval tmp = {0x00,};
+    HashTable *hash_arr = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    MDBM_ITER arg_iter;
+    MDBM_ITER *parg_iter = &arg_iter;
+    int id = -1;
+    int rv = -1;
+
+    kvpair kv = {0x00,};
+    char *pretkey = NULL;
+    char *pretval = NULL;
+
+    long in_pageno = 0;
+    long in_next = 0;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|a", &mdbm_link_index, &arr) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //the outside-iter
+    if (arr != NULL) {
+        hash_arr = HASH_OF(arr);
+        if ( hash_arr == NULL || zend_hash_num_elements(hash_arr) < 2 ) {
+            php_error_docref(NULL TSRMLS_CC, E_ERROR, "required not valid iter");
+            RETURN_FALSE;
+        }
+
+        zval **item;
+        if (zend_hash_find(hash_arr, HASHKEY_PAGENO, strlen(HASHKEY_PAGENO) + 1, (void **) &item) == FAILURE) {
+            fprintf(stdout, "FAILURE\n");
+        } else {
+            convert_to_long_ex(item);
+            in_pageno = Z_LVAL_PP(item);
+        }
+
+        if (zend_hash_find(hash_arr, HASHKEY_NEXT, strlen(HASHKEY_NEXT) + 1, (void **) &item) == FAILURE) {
+            fprintf(stdout, "FAILURE\n");
+        } else {
+            convert_to_long_ex(item);
+            in_next = Z_LVAL_PP(item);
+        }
+
+        fprintf(stdout, "[IN] m_pageno : %ld\n", in_pageno);
+        fprintf(stdout, "[IN] m_next : %ld\n", in_next);
+    }
+    
+
+    //fetch the resource
+    FETCH_RES(mdbm_link_index, id);
+
+parg_iter->m_pageno = (*mdbm_link).iter.m_pageno;
+parg_iter->m_next = (*mdbm_link).iter.m_next;
+
+    CAPTURE_START();
+    kv = mdbm_next_r(mdbm_link->pmdbm, parg_iter);
+    CAPTURE_END();
+
+(*mdbm_link).iter.m_pageno = parg_iter->m_pageno;
+(*mdbm_link).iter.m_next = parg_iter->m_next ;
+
+    if (kv.key.dptr == NULL || kv.val.dptr == NULL) {
+        RETURN_FALSE;
+    }
+
+    pretkey = copy_strptr(kv.key.dptr, kv.key.dsize);
+    if (pretkey == NULL) {
+        RETURN_FALSE;
+    }
+
+    pretval = copy_strptr(kv.val.dptr, kv.val.dsize);
+    if (pretval == NULL) {
+        RETURN_FALSE;
+    }
+
+    array_init(return_value);
+
+    _ADD_ASSOC_STRINGL(return_value, HASHKEY_KEY, pretkey, kv.key.dsize, 0);
+    _ADD_ASSOC_STRINGL(return_value, HASHKEY_VAL, pretval, kv.val.dsize, 0);
+    add_assoc_long(return_value, HASHKEY_PAGENO, (*mdbm_link).iter.m_pageno);
+    add_assoc_long(return_value, HASHKEY_NEXT, (*mdbm_link).iter.m_next);
+
+}
+
+
+
+
 
 PHP_FUNCTION(mdbm_count_records) {
 
@@ -2156,7 +2329,7 @@ PHP_FUNCTION(mdbm_get_hash_value) {
     int id = -1;
     int rv = -1;
     uint32_t hashv = -1;
-    datum key;
+    datum key = {0x00,};
 
     char *pkey = NULL;
     _ZEND_STR_LEN key_len = -1;
@@ -2197,7 +2370,7 @@ PHP_FUNCTION(mdbm_get_page) {
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
     mdbm_ubig_t rv = -1;
-    datum key;
+    datum key = {0x00,};
 
     char *pkey = NULL;
     _ZEND_STR_LEN key_len = 0;

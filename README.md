@@ -10,6 +10,13 @@
 |:-:|:-:|:-:|
 |[![Build Status](https://travis-ci.org/torden/php-mdbm.svg?branch=master)](https://travis-ci.org/torden/php-mdbm)|[![GitHub version](https://badge.fury.io/gh/torden%2Fphp-mdbm.svg)](https://badge.fury.io/gh/torden%2Fphp-mdbm)|[![GitHub version](https://badge.fury.io/gh/yahoo%2Fmdbm.svg)](https://badge.fury.io/gh/yahoo%2Fmdbm)|
 
+## Table of Contents
+
+- [API](#api)
+- [Install](#install)
+- [Example](#example)
+- [Link](#link)
+
 ## API
 
 ### Currently Supported APIs
