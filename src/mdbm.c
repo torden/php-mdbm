@@ -701,7 +701,7 @@ PHP_FUNCTION(mdbm_dup_handle) {
     _ZEND_LONG flags = 0; // flags Reserved for future use
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -741,7 +741,7 @@ PHP_FUNCTION(mdbm_close) {
     int id = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -771,7 +771,7 @@ PHP_FUNCTION(mdbm_truncate) {
     int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -793,7 +793,7 @@ PHP_FUNCTION(mdbm_replace_db) {
     _ZEND_STR_LEN newfile_len = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rp", &mdbm_link_index, &pnewfile, &newfile_len) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -821,7 +821,7 @@ PHP_FUNCTION(mdbm_replace_file) {
     _ZEND_STR_LEN newfile_len = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "pp", &poldfile, &oldfile_len, &pnewfile, &newfile_len) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -843,7 +843,7 @@ PHP_FUNCTION(mdbm_sync) {
     int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -868,7 +868,7 @@ PHP_FUNCTION(mdbm_fsync) {
     int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -893,7 +893,7 @@ PHP_FUNCTION(mdbm_get_lockmode) {
     uint32_t rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -918,7 +918,7 @@ PHP_FUNCTION(mdbm_lock) {
     int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -943,7 +943,7 @@ PHP_FUNCTION(mdbm_trylock) {
     int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -973,7 +973,7 @@ PHP_FUNCTION(mdbm_plock) {
     datum datum_key = {0x00,};
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1007,7 +1007,7 @@ PHP_FUNCTION(mdbm_tryplock) {
     datum datum_key = {0x00,};
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1036,7 +1036,7 @@ PHP_FUNCTION(mdbm_lock_shared) {
     int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1061,7 +1061,7 @@ PHP_FUNCTION(mdbm_trylock_shared) {
     int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1091,7 +1091,7 @@ PHP_FUNCTION(mdbm_lock_smart) {
     datum datum_key = {0x00,};
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1125,7 +1125,7 @@ PHP_FUNCTION(mdbm_trylock_smart) {
     datum datum_key = {0x00,};
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1154,7 +1154,7 @@ PHP_FUNCTION(mdbm_unlock) {
     int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1184,7 +1184,7 @@ PHP_FUNCTION(mdbm_punlock) {
     datum datum_key = {0x00,};
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1218,7 +1218,7 @@ PHP_FUNCTION(mdbm_unlock_smart) {
     datum datum_key = {0x00,};
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1248,7 +1248,7 @@ PHP_FUNCTION(mdbm_islocked) {
     int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1276,7 +1276,7 @@ PHP_FUNCTION(mdbm_isowned) {
     int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1307,7 +1307,7 @@ PHP_FUNCTION(mdbm_lock_reset) {
     int dbfn_len = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &dbfn, &dbfn_len) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1335,7 +1335,7 @@ PHP_FUNCTION(mdbm_delete_lockfiles) {
     char fn[PATH_MAX] = {0x00};
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "p", &pdbfn, &dbfn_len) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1363,7 +1363,7 @@ PHP_FUNCTION(mdbm_preload) {
     int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1388,7 +1388,7 @@ PHP_FUNCTION(mdbm_get_errno) {
     int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1409,7 +1409,7 @@ PHP_FUNCTION(mdbm_get_version) {
     uint32_t rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1431,7 +1431,7 @@ PHP_FUNCTION(mdbm_get_size) {
     uint64_t rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1452,7 +1452,7 @@ PHP_FUNCTION(mdbm_get_page_size) {
     int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1473,7 +1473,7 @@ PHP_FUNCTION(mdbm_get_hash) {
     int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1497,7 +1497,7 @@ PHP_FUNCTION(mdbm_set_hash) {
     _ZEND_LONG hash = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &hash) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1527,7 +1527,7 @@ PHP_FUNCTION(mdbm_get_limit_size) {
     int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1549,7 +1549,7 @@ PHP_FUNCTION(mdbm_compress_tree) {
     int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1652,7 +1652,7 @@ PHP_FUNCTION(mdbm_fetch) {
     char *pretval = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1696,7 +1696,7 @@ PHP_FUNCTION(mdbm_delete) {
     char *pretval = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1732,7 +1732,7 @@ PHP_FUNCTION(mdbm_first) {
     char *pretval = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1774,7 +1774,7 @@ PHP_FUNCTION(mdbm_next) {
     char *pretval = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1815,7 +1815,7 @@ PHP_FUNCTION(mdbm_firstkey) {
     char *pretkey = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1849,7 +1849,7 @@ PHP_FUNCTION(mdbm_nextkey) {
     char *pretval = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1888,7 +1888,7 @@ PHP_FUNCTION(mdbm_first_r) {
     char *pretval = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1897,15 +1897,9 @@ PHP_FUNCTION(mdbm_first_r) {
 
     MDBM_ITER_INIT(parg_iter);
 
-fprintf(stdout, "[F-I] m_pageno : %d , m_next : %d\n", parg_iter->m_pageno, parg_iter->m_next);
-
     CAPTURE_START();
     kv = mdbm_first_r(mdbm_link->pmdbm, parg_iter);
     CAPTURE_END();
-
-fprintf(stdout, "[F-O] m_pageno : %d , m_next : %d\n", parg_iter->m_pageno, parg_iter->m_next);
-(*mdbm_link).iter.m_pageno = parg_iter->m_pageno;
-(*mdbm_link).iter.m_next = parg_iter->m_next ;
 
     if (kv.key.dptr == NULL || kv.val.dptr == NULL) {
         RETURN_FALSE;
@@ -1949,7 +1943,7 @@ PHP_FUNCTION(mdbm_next_r) {
     long in_next = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|a", &mdbm_link_index, &arr) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+		php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -1957,42 +1951,42 @@ PHP_FUNCTION(mdbm_next_r) {
     if (arr != NULL) {
         hash_arr = HASH_OF(arr);
         if ( hash_arr == NULL || zend_hash_num_elements(hash_arr) < 2 ) {
-            php_error_docref(NULL TSRMLS_CC, E_ERROR, "required not valid iter");
+			php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a not valid parameter: iter");
             RETURN_FALSE;
         }
 
         zval **item;
         if (zend_hash_find(hash_arr, HASHKEY_PAGENO, strlen(HASHKEY_PAGENO) + 1, (void **) &item) == FAILURE) {
-            fprintf(stdout, "FAILURE\n");
+			php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_PAGENO);
         } else {
             convert_to_long_ex(item);
             in_pageno = Z_LVAL_PP(item);
         }
 
         if (zend_hash_find(hash_arr, HASHKEY_NEXT, strlen(HASHKEY_NEXT) + 1, (void **) &item) == FAILURE) {
-            fprintf(stdout, "FAILURE\n");
+			php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_NEXT);
         } else {
             convert_to_long_ex(item);
             in_next = Z_LVAL_PP(item);
         }
 
-        fprintf(stdout, "[IN] m_pageno : %ld\n", in_pageno);
-        fprintf(stdout, "[IN] m_next : %ld\n", in_next);
-    }
-    
+		parg_iter->m_pageno = in_pageno;
+		parg_iter->m_next = in_next;
+
+    } else { //global-iter
+		parg_iter->m_pageno = (*mdbm_link).iter.m_pageno;
+		parg_iter->m_next = (*mdbm_link).iter.m_next;
+	}
 
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
-
-parg_iter->m_pageno = (*mdbm_link).iter.m_pageno;
-parg_iter->m_next = (*mdbm_link).iter.m_next;
 
     CAPTURE_START();
     kv = mdbm_next_r(mdbm_link->pmdbm, parg_iter);
     CAPTURE_END();
 
-(*mdbm_link).iter.m_pageno = parg_iter->m_pageno;
-(*mdbm_link).iter.m_next = parg_iter->m_next ;
+	(*mdbm_link).iter.m_pageno = parg_iter->m_pageno;
+	(*mdbm_link).iter.m_next = parg_iter->m_next ;
 
     if (kv.key.dptr == NULL || kv.val.dptr == NULL) {
         RETURN_FALSE;
@@ -2014,12 +2008,7 @@ parg_iter->m_next = (*mdbm_link).iter.m_next;
     _ADD_ASSOC_STRINGL(return_value, HASHKEY_VAL, pretval, kv.val.dsize, 0);
     add_assoc_long(return_value, HASHKEY_PAGENO, (*mdbm_link).iter.m_pageno);
     add_assoc_long(return_value, HASHKEY_NEXT, (*mdbm_link).iter.m_next);
-
 }
-
-
-
-
 
 PHP_FUNCTION(mdbm_count_records) {
 
@@ -2029,7 +2018,7 @@ PHP_FUNCTION(mdbm_count_records) {
     uint64_t rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -2050,7 +2039,7 @@ PHP_FUNCTION(mdbm_count_pages) {
     uint64_t rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -2073,7 +2062,7 @@ PHP_FUNCTION(mdbm_set_cachemode) {
     _ZEND_LONG flag = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &flag) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -2103,7 +2092,7 @@ PHP_FUNCTION(mdbm_get_cachemode) {
     int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -2134,7 +2123,7 @@ PHP_FUNCTION(mdbm_get_cachemode_name) {
     int retval_len = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &cacheno) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -2163,7 +2152,7 @@ PHP_FUNCTION(mdbm_check) {
     zend_bool verbose = FALSE;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl|b", &mdbm_link_index, &level, &verbose) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -2198,7 +2187,7 @@ PHP_FUNCTION(mdbm_chk_all_page) {
     int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -2225,7 +2214,7 @@ PHP_FUNCTION(mdbm_chk_page) {
     _ZEND_LONG pagenum = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &pagenum) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -2252,7 +2241,7 @@ PHP_FUNCTION(mdbm_protect) {
     _ZEND_LONG protect = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &protect) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -2282,7 +2271,7 @@ PHP_FUNCTION(mdbm_lock_pages) {
     int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -2307,7 +2296,7 @@ PHP_FUNCTION(mdbm_unlock_pages) {
     int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -2336,7 +2325,7 @@ PHP_FUNCTION(mdbm_get_hash_value) {
     _ZEND_LONG hfc = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl", &pkey, &key_len, &hfc) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -2377,7 +2366,7 @@ PHP_FUNCTION(mdbm_get_page) {
 
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -2410,7 +2399,7 @@ PHP_FUNCTION(mdbm_get_magic_number) {
     uint32_t magic = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required the mdbm resource");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
