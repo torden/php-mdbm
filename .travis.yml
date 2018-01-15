@@ -28,5 +28,5 @@ script:
     - phpize
     - ./configure --with-php-config=`which php-config` --with-mdbm=/usr/local/mdbm/
     - make -j2
-    - CRASH_PLEASE=1 make test TESTS="-q -v -m"
+    - make test TESTS="-q -v -m"
     - ./travis-ci-check.sh
