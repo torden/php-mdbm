@@ -1438,7 +1438,7 @@ PHP_FUNCTION(mdbm_delete_lockfiles) {
 
     char fn[PATH_MAX] = {0x00};
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "p", &pdbfn, &dbfn_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &pdbfn, &dbfn_len) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
