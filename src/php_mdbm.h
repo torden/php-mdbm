@@ -110,8 +110,20 @@ PHP_FUNCTION(mdbm_next);
 PHP_FUNCTION(mdbm_firstkey);
 PHP_FUNCTION(mdbm_nextkey);
 
+PHP_FUNCTION(mdbm_reset_global_iter);
+PHP_FUNCTION(mdbm_get_global_iter);
+PHP_FUNCTION(mdbm_get_iter);
+
+PHP_FUNCTION(mdbm_store_r);
+PHP_FUNCTION(mdbm_fetch_r);
+PHP_FUNCTION(mdbm_fetch_dup_r);
+PHP_FUNCTION(mdbm_fetch_info);
 PHP_FUNCTION(mdbm_first_r);
+PHP_FUNCTION(mdbm_delete_r);
+
 PHP_FUNCTION(mdbm_next_r);
+PHP_FUNCTION(mdbm_firstkey_r);
+PHP_FUNCTION(mdbm_nextkey_r);
 
 PHP_FUNCTION(mdbm_count_records);
 PHP_FUNCTION(mdbm_count_pages);
@@ -145,7 +157,7 @@ ZEND_BEGIN_MODULE_GLOBALS(mdbm)
 ZEND_END_MODULE_GLOBALS(mdbm)
 */
 
-#if PHP_VERSION_ID < 70000 // PHP5 
+#if PHP_MAJOR_VERSION < 7
 
 #ifdef ZTS
 #define MDBM_G(v) TSRMG(mdbm_globals_id, zend_mdbm_globals *, v)

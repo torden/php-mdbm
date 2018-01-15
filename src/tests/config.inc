@@ -1,5 +1,8 @@
 <?php
 define("TEST_MDBM", "/tmp/test_phpt.mdbm");
+define("TEST_MDBM_ITER", "/tmp/test_phpt_iter.mdbm");
+define("TEST_MDBM_DUP", "/tmp/test_phpt_dup.mdbm");
+define("TEST_MDBM_DELETE", "/tmp/test_phpt_delete.mdbm");
 define("TEST_MDBM_REPLACE1", "/tmp/test_phpt_replace1.mdbm");
 define("TEST_MDBM_REPLACE2", "/tmp/test_phpt_replace2.mdbm");
 

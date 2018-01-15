@@ -142,3 +142,4 @@ CHECK_FALSE($rv);
 ?>
 --EXPECT--
 NOTE: Resetting locks for /tmp/test_phpt.mdbm!
+NOTE: Resetting locks for /tmp/test_phpt.mdbm!

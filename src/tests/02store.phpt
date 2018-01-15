@@ -10,8 +10,7 @@ $db = mdbm_open(TEST_MDBM, MDBM_O_RDWR|MDBM_O_CREAT|MDBM_LARGE_OBJECTS|MDBM_O_TR
 CHECK_FALSE($db);
 
 for($i=0;$i<10;$i++) {
-    $v =  rand(1,65535);
-    $rv = mdbm_store($db, $i, $v);
+    $rv = mdbm_store($db, $i, $i);
     CHECK_FALSE($rv);
 }
 
