@@ -58,5 +58,6 @@ z.php
 *.bak
 *.core.*
 *.mem
+*.mem.*
 core
 tags

@@ -29,7 +29,7 @@ $rv = mdbm_lock_reset(TEST_MDBM);
 CHECK_FALSE($rv);
 
 //quite
-mdbm_log_minlevel(MDBM_LOG_OFF);
+//mdbm_log_minlevel(MDBM_LOG_OFF);
 $rv = mdbm_lock_reset(TEST_MDBM);
 CHECK_FALSE($rv);
 
@@ -119,6 +119,7 @@ CHECK_FALSE($rv);
 $rv = mdbm_protect($db, MDBM_PROT_WRITE);
 CHECK_FALSE($rv);
 
+/*
 $rv = mdbm_lock_pages($db);
 CHECK_FALSE($rv);
 
@@ -129,6 +130,7 @@ CHECK_FALSE($rv);
 
 $rv = mdbm_unlock_pages($db);
 CHECK_FALSE($rv);
+*/
 
 $rv = mdbm_protect($db, MDBM_PROT_ACCESS);
 CHECK_FALSE($rv);
@@ -141,4 +143,5 @@ CHECK_FALSE($rv);
 
 ?>
 --EXPECT--
+NOTE: Resetting locks for /tmp/test_phpt.mdbm!
 NOTE: Resetting locks for /tmp/test_phpt.mdbm!
