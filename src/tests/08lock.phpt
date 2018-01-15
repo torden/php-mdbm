@@ -119,6 +119,7 @@ CHECK_FALSE($rv);
 $rv = mdbm_protect($db, MDBM_PROT_WRITE);
 CHECK_FALSE($rv);
 
+/*
 $rv = mdbm_lock_pages($db);
 CHECK_FALSE($rv);
 
@@ -129,6 +130,7 @@ CHECK_FALSE($rv);
 
 $rv = mdbm_unlock_pages($db);
 CHECK_FALSE($rv);
+*/
 
 $rv = mdbm_protect($db, MDBM_PROT_ACCESS);
 CHECK_FALSE($rv);
