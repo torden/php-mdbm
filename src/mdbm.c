@@ -924,13 +924,13 @@ PHP_FUNCTION(mdbm_replace_file) {
     char *pnewfile = NULL;
     _ZEND_STR_LEN newfile_len = 0;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "pp", &poldfile, &oldfile_len, &pnewfile, &newfile_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &poldfile, &oldfile_len, &pnewfile, &newfile_len) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
     CAPTURE_START();
-    rv = mdbm_replace_file(poldfile, pnewfile);
+    rv = mdbm_replace_file((const char*)poldfile, (const char *)pnewfile);
     CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
