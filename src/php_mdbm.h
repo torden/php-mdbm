@@ -66,6 +66,7 @@ PHP_FUNCTION(mdbm_log_minlevel);
 PHP_FUNCTION(mdbm_open);
 PHP_FUNCTION(mdbm_dup_handle);
 PHP_FUNCTION(mdbm_close);
+PHP_FUNCTION(mdbm_close_fd);
 PHP_FUNCTION(mdbm_truncate);
 PHP_FUNCTION(mdbm_sync);
 PHP_FUNCTION(mdbm_fsync);

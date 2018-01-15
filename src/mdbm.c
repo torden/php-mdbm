@@ -137,6 +137,10 @@ typedef size_t _ZEND_STR_LEN;
 static void _close_mdbm_link(zend_rsrc_list_entry *rsrc TSRMLS_DC) {
 
     php_mdbm_open *link = (php_mdbm_open *)rsrc->ptr;
+    if (link == NULL) {
+        return;
+    }
+
     if (link->pmdbm == NULL) {
         return;
     }
@@ -152,6 +156,10 @@ static void _close_mdbm_link(zend_rsrc_list_entry *rsrc TSRMLS_DC) {
 static void _close_mdbm_link(zend_resource *rsrc TSRMLS_DC) {
 
     php_mdbm_open *link = (php_mdbm_open *)rsrc->ptr;
+    if (link == NULL) {
+        return;
+    }
+
     if (link->pmdbm != NULL) {
         mdbm_close(link->pmdbm);
         efree(link);
@@ -347,6 +355,7 @@ const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_open,                   arginfo_mdbm_open)
     PHP_FE(mdbm_dup_handle,             arginfo_mdbm_pmdbm_optional_flags)
     PHP_FE(mdbm_close,                  arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_close_fd,               arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_truncate,               arginfo_mdbm_pmdbm)
 
     PHP_FE(mdbm_replace_db,             arginfo_mdbm_newfile)
@@ -852,6 +861,36 @@ PHP_FUNCTION(mdbm_close) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+    if (mdbm_link_index) {
+
+#if PHP_VERSION_ID < 70000
+        zend_list_delete(Z_RESVAL_P(mdbm_link_index));
+    } else {
+        zend_list_delete(id);
+#else
+        zend_list_close(Z_RES_P(mdbm_link_index));
+#endif
+    }
+
+    RETURN_TRUE;
+}
+
+PHP_FUNCTION(mdbm_close_fd) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+
+    int id = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
+        RETURN_FALSE;
+    }
+
+    //fetch the resource
+    FETCH_RES(mdbm_link_index, id);
+
+	mdbm_close_fd(mdbm_link->pmdbm);
 
     if (mdbm_link_index) {
 
