@@ -7,7 +7,7 @@ if [ $CNT -gt 0 ]; then
     cat ./tests/*.mem
     echo "[*] log"
     cat ./tests/*.log
-    gdb -ex "thread apply all bt" -ex "set pagination 0" -batch --args `which php` tests/08lock.mem.core.*
+    gdb `which php` tests/08lock.mem.core.* -ex "thread apply all bt" -ex "set pagination 0" -batch --args
     exit 1;
 else
     echo "OK";
