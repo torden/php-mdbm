@@ -29,8 +29,11 @@ $rv = mdbm_lock_reset(TEST_MDBM);
 CHECK_FALSE($rv);
 
 //quite
+print("DEBUG : here1\n");
 mdbm_log_minlevel(MDBM_LOG_OFF);
+print("DEBUG : here2\n");
 $rv = mdbm_lock_reset(TEST_MDBM);
+print("DEBUG : here3\n");
 CHECK_FALSE($rv);
 
 $rv = mdbm_store($db, rand(0,123456789), rand(0,123456789), MDBM_REPLACE);
@@ -144,4 +147,7 @@ CHECK_FALSE($rv);
 ?>
 --EXPECT--
 NOTE: Resetting locks for /tmp/test_phpt.mdbm!
+DEBUG : here1
+DEBUG : here2
 NOTE: Resetting locks for /tmp/test_phpt.mdbm!
+DEBUG : here3
