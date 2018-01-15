@@ -52,7 +52,7 @@ static int le_link, loglevel, dev_null, org_stdout, org_stderr;
 
 #define LE_MDBM_NAME "PHP-MDBM"
 
-#if PHP_MAJOR_VERSION < 7 // PHP5
+#if PHP_VERSION_ID < 70000
 
 typedef long int _ZEND_LONG;
 typedef int _ZEND_STR_LEN;
@@ -133,7 +133,7 @@ typedef size_t _ZEND_STR_LEN;
 #define CAPTURE_START()
 #define CAPTURE_END() 
 
-#if PHP_MAJOR_VERSION < 7
+#if PHP_VERSION_ID < 70000
 static void _close_mdbm_link(zend_rsrc_list_entry *rsrc TSRMLS_DC) {
 
     php_mdbm_open *link = (php_mdbm_open *)rsrc->ptr;
@@ -192,7 +192,7 @@ static inline char* copy_strptr(char *dptr, int dsize) {
 static inline int iter_handler(php_mdbm_open *mdbm_link, MDBM_ITER **piter,  zval *arr) {
 
     HashTable *hash_arr = NULL;
-#if PHP_MAJOR_VERSION < 7
+#if PHP_VERSION_ID < 70000
     zval **item;
 #else
     zval *item = NULL;
@@ -209,7 +209,7 @@ static inline int iter_handler(php_mdbm_open *mdbm_link, MDBM_ITER **piter,  zva
             return -1;
         }
 
-#if PHP_MAJOR_VERSION < 7
+#if PHP_VERSION_ID < 70000
         if (zend_hash_find(hash_arr, HASHKEY_PAGENO, strlen(HASHKEY_PAGENO) + 1, (void **) &item) == FAILURE) {
 			php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_PAGENO);
             return -2;
@@ -448,7 +448,7 @@ zend_module_entry mdbm_module_entry = {
 /* }}} */
 
 
-#if PHP_MAJOR_VERSION < 7 // PHP5
+#if PHP_VERSION_ID < 70000
 
 #ifdef COMPILE_DL_MDBM
 ZEND_GET_MODULE(mdbm)
@@ -681,7 +681,7 @@ PHP_MSHUTDOWN_FUNCTION(mdbm)
 PHP_RINIT_FUNCTION(mdbm)
 {
 
-#if PHP_MAJOR_VERSION < 7 // PHP7
+#if PHP_VERSION_ID >= 70000
     #if defined(COMPILE_DL_MDBM) && defined(ZTS)
     ZEND_TSRMLS_CACHE_UPDATE();
     #endif
@@ -786,7 +786,7 @@ PHP_FUNCTION(mdbm_open) {
     mdbm_link->pmdbm = pmdbm;
     MDBM_ITER_INIT(&(*mdbm_link).iter);
 
-#if PHP_MAJOR_VERSION < 7
+#if PHP_VERSION_ID < 70000
     ZEND_REGISTER_RESOURCE(return_value, mdbm_link, le_link);
 #else
     RETURN_RES(zend_register_resource(mdbm_link, le_link));
@@ -830,7 +830,7 @@ PHP_FUNCTION(mdbm_dup_handle) {
     mdbm_new_link->pmdbm = pnew_mdbm;
     MDBM_ITER_INIT(&(*mdbm_new_link).iter);
 
-#if PHP_MAJOR_VERSION < 7
+#if PHP_VERSION_ID < 70000
     ZEND_REGISTER_RESOURCE(return_value, mdbm_new_link, le_link);
 #else
     RETURN_RES(zend_register_resource(mdbm_new_link, le_link));
@@ -855,7 +855,7 @@ PHP_FUNCTION(mdbm_close) {
 
     if (mdbm_link_index) {
 
-#if PHP_MAJOR_VERSION < 7
+#if PHP_VERSION_ID < 70000
         zend_list_delete(Z_RESVAL_P(mdbm_link_index));
     } else {
         zend_list_delete(id);
@@ -1416,9 +1416,9 @@ PHP_FUNCTION(mdbm_lock_reset) {
     }
 
     //flags Reserved for future use, and must be 0.
-        CAPTURE_START();
-        rv = mdbm_lock_reset(dbfn, 0);
-        CAPTURE_END();
+    CAPTURE_START();
+	rv = mdbm_lock_reset(dbfn, 0);
+    CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -2661,7 +2661,7 @@ PHP_FUNCTION(mdbm_get_cachemode_name) {
     retval_len = (int)strlen(pcache_name);
 
 
-#if PHP_MAJOR_VERSION < 7
+#if PHP_VERSION_ID < 70000
     pretval = copy_strptr((char *)pcache_name, retval_len);
     _R_STRINGL(pretval, retval_len, 0);
 #else // PHP7

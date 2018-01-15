@@ -157,7 +157,7 @@ ZEND_BEGIN_MODULE_GLOBALS(mdbm)
 ZEND_END_MODULE_GLOBALS(mdbm)
 */
 
-#if PHP_MAJOR_VERSION < 7
+#if PHP_VERSION_ID < 70000
 
 #ifdef ZTS
 #define MDBM_G(v) TSRMG(mdbm_globals_id, zend_mdbm_globals *, v)
