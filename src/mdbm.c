@@ -2640,7 +2640,7 @@ PHP_FUNCTION(mdbm_get_cachemode) {
         RETURN_FALSE;
     }
 
-    RETURN_LONG(rv);
+    RETURN_LONG((long)rv);
 }
 
 PHP_FUNCTION(mdbm_get_cachemode_name) {
@@ -2651,7 +2651,7 @@ PHP_FUNCTION(mdbm_get_cachemode_name) {
     int rv = -1;
 
     const char *pcache_name = NULL;
-    int cacheno = -1;
+    long cacheno = -1;
 
     char *pretval = NULL;
     int retval_len = -1;
@@ -2662,7 +2662,7 @@ PHP_FUNCTION(mdbm_get_cachemode_name) {
     }
 
     CAPTURE_START();
-    pcache_name = mdbm_get_cachemode_name(cacheno); //return value from stack
+    pcache_name = mdbm_get_cachemode_name((int)cacheno); //return value from stack
     CAPTURE_END();
     retval_len = (int)strlen(pcache_name);
 
@@ -2673,6 +2673,7 @@ PHP_FUNCTION(mdbm_get_cachemode_name) {
 #else // PHP7
     _R_STRINGL(pcache_name, retval_len, 0);
 #endif
+
 }
 
 PHP_FUNCTION(mdbm_check) {
