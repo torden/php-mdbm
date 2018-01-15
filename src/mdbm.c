@@ -896,7 +896,7 @@ PHP_FUNCTION(mdbm_replace_db) {
     char *pnewfile = NULL;
     _ZEND_STR_LEN newfile_len = 0;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rp", &mdbm_link_index, &pnewfile, &newfile_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &mdbm_link_index, &pnewfile, &newfile_len) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
@@ -1407,17 +1407,26 @@ PHP_FUNCTION(mdbm_lock_reset) {
     int id = -1;
     int rv = -1;
 
-    char *dbfn = NULL;
+    char *pdbfn = NULL;
     int dbfn_len = 0;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &dbfn, &dbfn_len) == FAILURE) {
+    char fn[PATH_MAX] = {0x00};
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &pdbfn, &dbfn_len) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing paramter: the mdbm resource");
         RETURN_FALSE;
     }
 
+    strncpy(fn, pdbfn, dbfn_len);
+    if (fn == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory");
+        RETURN_TRUE;
+    }
+
+
     //flags Reserved for future use, and must be 0.
     CAPTURE_START();
-	rv = mdbm_lock_reset(dbfn, 0);
+	rv = mdbm_lock_reset((const char *)&fn, 0);
     CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
@@ -1450,7 +1459,7 @@ PHP_FUNCTION(mdbm_delete_lockfiles) {
     }
 
     CAPTURE_START();
-    rv = mdbm_delete_lockfiles((const char *)fn);
+    rv = mdbm_delete_lockfiles((const char *)&fn);
     CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;

@@ -1,4 +1,5 @@
 #!/bin/bash
+CMD_PHP=`which php`
 CNT=$(find ./tests/ -name "*.mem" | wc -l)
 if [ $CNT -gt 0 ]; then
     echo "[*] FAIL : $CNT";
@@ -7,7 +8,7 @@ if [ $CNT -gt 0 ]; then
     cat ./tests/*.mem
     echo "[*] log"
     cat ./tests/*.log
-    gdb php tests/*.mem.core.* -ex "thread apply all bt" -ex "set pagination 0" -batch 
+    gdb $CMD_PHP tests/*.mem.core.* -ex "thread apply all bt" -ex "set pagination 0" -batch 
     exit 1;
 else
     echo "OK";
