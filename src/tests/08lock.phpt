@@ -25,13 +25,13 @@ $rv = mdbm_store($db, rand(0,123456789), rand(0,123456789), MDBM_REPLACE);
 CHECK_FALSE($rv);
 
 //output to consol
-//$rv = mdbm_lock_reset(TEST_MDBM);
-//CHECK_FALSE($rv);
+$rv = mdbm_lock_reset(TEST_MDBM);
+CHECK_FALSE($rv);
 
 //quite
-mdbm_log_minlevel(MDBM_LOG_OFF);
-//$rv = mdbm_lock_reset(TEST_MDBM);
-//CHECK_FALSE($rv);
+//mdbm_log_minlevel(MDBM_LOG_OFF);
+$rv = mdbm_lock_reset(TEST_MDBM);
+CHECK_FALSE($rv);
 
 $rv = mdbm_store($db, rand(0,123456789), rand(0,123456789), MDBM_REPLACE);
 CHECK_FALSE($rv);

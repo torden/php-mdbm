@@ -171,7 +171,7 @@ static inline char* copy_strptr(char *dptr, int dsize) {
 
     TSRMLS_FETCH();
 
-    pretval = (char *) ecalloc(dsize+1, sizeof(char));
+    pretval = (char *) ecalloc(sizeof(char), dsize+2);
     if (pretval == NULL) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory");
         return NULL;
@@ -2379,11 +2379,7 @@ PHP_FUNCTION(mdbm_first_r) {
     _ADD_ASSOC_STRINGL(return_value, HASHKEY_VAL, pretval, kv.val.dsize, 0);
     add_assoc_long(return_value, HASHKEY_PAGENO, parg_iter->m_pageno);
     add_assoc_long(return_value, HASHKEY_NEXT, parg_iter->m_next);
-    efree(pretkey);
-    efree(pretval);
-
 }
-
 
 PHP_FUNCTION(mdbm_next_r) {
 
@@ -2439,6 +2435,7 @@ PHP_FUNCTION(mdbm_next_r) {
     _ADD_ASSOC_STRINGL(return_value, HASHKEY_VAL, pretval, kv.val.dsize, 0);
     add_assoc_long(return_value, HASHKEY_PAGENO, parg_iter->m_pageno);
     add_assoc_long(return_value, HASHKEY_NEXT, parg_iter->m_next);
+
 }
 
 PHP_FUNCTION(mdbm_firstkey_r) {
