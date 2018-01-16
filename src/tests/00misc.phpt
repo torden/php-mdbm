@@ -76,8 +76,10 @@ CHECK_FALSE($rv);
 $rv = mdbm_get_stat_time($db2, MDBM_STAT_TYPE_DELETE);
 CHECK_FALSE($rv);
 
+/*
 $rv = mdbm_reset_stat_operations($db2);
 CHECK_FALSE($rv);
+*/
 
 $rv = mdbm_get_magic_number($db2);
 CHECK_FALSE($rv);
