@@ -43,6 +43,12 @@ CHECK_EQUALS($rv, 605072156);
 $db = mdbm_open(TEST_MDBM, MDBM_O_RDWR|MDBM_O_CREAT|MDBM_LARGE_OBJECTS|MDBM_O_TRUNC|MDBM_ANY_LOCKS, 0666, 0,0);
 CHECK_FALSE($db);
 
+$rv = mdbm_set_alignment($db, MDBM_ALIGN_64_BITS);
+CHECK_FALSE($db);
+
+$rv = mdbm_enable_stat_operations($db, MDBM_STATS_BASIC | MDBM_STATS_TIMED);
+CHECK_FALSE($db);
+
 for($i=0;$i<=4096;$i++) {
     $rv = mdbm_store($db, $i, $i);
     CHECK_FALSE($rv);
@@ -57,6 +63,22 @@ CHECK_FALSE($rv);
 $db2 = mdbm_open(TEST_MDBM, MDBM_O_RDONLY, 0666, 0,0);
 CHECK_FALSE($db2);
 
+$rv = mdbm_get_alignment($db2);
+CHECK_FALSE($rv);
+
+
+$rv = mdbm_get_stat_time($db2, MDBM_STAT_TYPE_FETCH);
+CHECK_FALSE($rv);
+
+$rv = mdbm_get_stat_time($db2, MDBM_STAT_TYPE_STORE);
+CHECK_FALSE($rv);
+
+$rv = mdbm_get_stat_time($db2, MDBM_STAT_TYPE_DELETE);
+CHECK_FALSE($rv);
+
+$rv = mdbm_reset_stat_operations($db2);
+CHECK_FALSE($rv);
+
 $rv = mdbm_get_magic_number($db2);
 CHECK_FALSE($rv);
 CHECK_EQUALS($rv, 16922980);
@@ -67,6 +89,9 @@ CHECK_GREATER_THAN_EQUAL_TO($pagenum, 0);
 
 $rv = mdbm_chk_page($db2, $pagenum);
 CHECK_FALSE($pagenum);
+
+$rv = mdbm_fcopy($db2, "/tmp/aa.mdbm", 0644, MDBM_COPY_LOCK_ALL);
+CHECK_FALSE($rv);
 
 $rv = mdbm_close($db2);
 CHECK_FALSE($rv);
