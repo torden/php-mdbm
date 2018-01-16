@@ -46,6 +46,7 @@
 typedef struct _php_mdbm_open {
     MDBM *pmdbm;
     MDBM_ITER iter;
+	int enable_stat; //fix : reset_stat_op before enable_stat_op
 } php_mdbm_open;
 
 static int le_link, loglevel, dev_null, org_stdout, org_stderr;
@@ -194,7 +195,7 @@ static inline char* copy_strptr(char *dptr, int dsize) {
 
     TSRMLS_FETCH();
 
-    pretval = (char *) ecalloc(dsize+1, sizeof(char));
+    pretval = (char *) ecalloc(dsize+2, sizeof(char));
     if (pretval == NULL) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory");
         return NULL;
@@ -477,7 +478,7 @@ const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_get_magic_number,       arginfo_mdbm_pmdbm)
 
     PHP_FE(mdbm_enable_stat_operations, arginfo_mdbm_pmdbm_flags)
-    //PHP_FE(mdbm_reset_stat_operations,  arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_reset_stat_operations,  arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_set_stat_time_func,     arginfo_mdbm_pmdbm_flags)
     PHP_FE(mdbm_get_stat_time,          arginfo_mdbm_pmdbm_type)
 
@@ -834,9 +835,11 @@ PHP_FUNCTION(mdbm_open) {
         RETURN_FALSE;
     }
 
-    mdbm_link->pmdbm = pmdbm;
-    MDBM_ITER_INIT(&(*mdbm_link).iter);
+	mdbm_link->pmdbm = pmdbm;
 
+	MDBM_ITER_INIT(&(*mdbm_link).iter);
+	mdbm_link->enable_stat = 0; 
+    
 #if PHP_VERSION_ID < 70000
     ZEND_REGISTER_RESOURCE(return_value, mdbm_link, le_link);
 #else
@@ -3245,10 +3248,11 @@ PHP_FUNCTION(mdbm_enable_stat_operations) {
         RETURN_FALSE;
     }
 
+	mdbm_link->enable_stat = 1;
+
     RETURN_TRUE;
 }
 
-/* - SIGSEG
 PHP_FUNCTION(mdbm_reset_stat_operations) {
 
     zval *mdbm_link_index = NULL;
@@ -3264,12 +3268,16 @@ PHP_FUNCTION(mdbm_reset_stat_operations) {
     //fetch the resource
     FETCH_RES(mdbm_link_index, id);
 
+	if (mdbm_link->enable_stat != 1) {
+	    php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - Required! call to mdbm_reset_stat_operations aftre mdbm_enable_stat_operations.");
+        RETURN_FALSE;
+	}
+
     CAPTURE_START();
     mdbm_reset_stat_operations(mdbm_link->pmdbm);
     CAPTURE_END();
     RETURN_NULL();
 }
-*/
 
 PHP_FUNCTION(mdbm_set_stat_time_func) {
 

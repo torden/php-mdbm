@@ -50,7 +50,7 @@ $rv = mdbm_enable_stat_operations($db, MDBM_STATS_BASIC | MDBM_STATS_TIMED);
 CHECK_FALSE($db);
 
 for($i=0;$i<=4096;$i++) {
-    $rv = mdbm_store($db, $i, $i);
+    $rv = mdbm_store($db, $i*123, $i*986);
     CHECK_FALSE($rv);
 }
 
@@ -60,8 +60,13 @@ CHECK_FALSE($rv);
 $rv = mdbm_close($db);
 CHECK_FALSE($rv);
 
-$db2 = mdbm_open(TEST_MDBM, MDBM_O_RDONLY, 0666, 0,0);
+$db2 = mdbm_open(TEST_MDBM, MDBM_O_RDWR, 0666, 0,0);
 CHECK_FALSE($db2);
+
+$rv = mdbm_enable_stat_operations($db2, MDBM_STATS_BASIC | MDBM_STATS_TIMED);
+CHECK_FALSE($db2);
+
+
 
 $rv = mdbm_get_alignment($db2);
 CHECK_FALSE($rv);
@@ -76,10 +81,10 @@ CHECK_FALSE($rv);
 $rv = mdbm_get_stat_time($db2, MDBM_STAT_TYPE_DELETE);
 CHECK_FALSE($rv);
 
-/*
+
 $rv = mdbm_reset_stat_operations($db2);
 CHECK_FALSE($rv);
-*/
+
 
 $rv = mdbm_get_magic_number($db2);
 CHECK_FALSE($rv);
