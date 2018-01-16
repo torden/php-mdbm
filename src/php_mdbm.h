@@ -43,6 +43,21 @@ extern zend_module_entry mdbm_module_entry;
 #define MDBM_LOG_ABORT          LOG_EMERG
 #define MDBM_LOG_FATAL          LOG_ALERT
 
+#define MDBM_STAT_TYPE_FETCH    0
+#define MDBM_STAT_TYPE_STORE    1
+#define MDBM_STAT_TYPE_DELETE   2
+#define MDBM_STAT_TYPE_MAX      MDBM_STAT_TYPE_DELETE
+
+#define MDBM_PTYPE_FREE         0 // Page type free
+#define MDBM_PTYPE_DATA         1 // Page type data
+#define MDBM_PTYPE_DIR          2 // Page type directory
+#define MDBM_PTYPE_LOB          3 // Page type large object
+
+#define MDBM_LOG_TO_STDERR      0
+#define MDBM_LOG_TO_FILE        1
+#define MDBM_LOG_TO_SYSLOG      2
+
+
 
 #ifdef PHP_WIN32
 #	define PHP_MDBM_API __declspec(dllexport)
@@ -66,11 +81,15 @@ PHP_FUNCTION(mdbm_log_minlevel);
 PHP_FUNCTION(mdbm_open);
 PHP_FUNCTION(mdbm_dup_handle);
 PHP_FUNCTION(mdbm_close);
+PHP_FUNCTION(mdbm_close_fd);
 PHP_FUNCTION(mdbm_truncate);
+PHP_FUNCTION(mdbm_purge);
 PHP_FUNCTION(mdbm_sync);
 PHP_FUNCTION(mdbm_fsync);
 PHP_FUNCTION(mdbm_replace_db);
 PHP_FUNCTION(mdbm_replace_file);
+PHP_FUNCTION(mdbm_pre_split);
+PHP_FUNCTION(mdbm_fcopy);
 
 PHP_FUNCTION(mdbm_get_lockmode);
 
@@ -94,12 +113,15 @@ PHP_FUNCTION(mdbm_delete_lockfiles);
 
 PHP_FUNCTION(mdbm_preload);
 PHP_FUNCTION(mdbm_get_errno);
+PHP_FUNCTION(mdbm_limit_dir_size);
 PHP_FUNCTION(mdbm_get_version);
 PHP_FUNCTION(mdbm_get_size);
 PHP_FUNCTION(mdbm_get_page_size);
 PHP_FUNCTION(mdbm_set_hash);
 PHP_FUNCTION(mdbm_get_hash);
 PHP_FUNCTION(mdbm_get_limit_size);
+PHP_FUNCTION(mdbm_get_alignment);
+PHP_FUNCTION(mdbm_set_alignment);
 PHP_FUNCTION(mdbm_compress_tree);
 
 PHP_FUNCTION(mdbm_store);
@@ -135,8 +157,6 @@ PHP_FUNCTION(mdbm_get_cachemode_name);
 PHP_FUNCTION(mdbm_check);
 PHP_FUNCTION(mdbm_chk_all_page);
 PHP_FUNCTION(mdbm_chk_page);
-
-
 PHP_FUNCTION(mdbm_protect);
 
 PHP_FUNCTION(mdbm_lock_pages);
@@ -145,6 +165,11 @@ PHP_FUNCTION(mdbm_unlock_pages);
 PHP_FUNCTION(mdbm_get_hash_value);
 PHP_FUNCTION(mdbm_get_page);
 PHP_FUNCTION(mdbm_get_magic_number);
+
+PHP_FUNCTION(mdbm_enable_stat_operations);
+//PHP_FUNCTION(mdbm_reset_stat_operations);
+PHP_FUNCTION(mdbm_set_stat_time_func);
+PHP_FUNCTION(mdbm_get_stat_time);
 
 
 /* 
