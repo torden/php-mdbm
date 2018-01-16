@@ -194,7 +194,7 @@ static inline char* copy_strptr(char *dptr, int dsize) {
 
     TSRMLS_FETCH();
 
-    pretval = (char *) ecalloc(sizeof(char), dsize+2);
+    pretval = (char *) ecalloc(dsize+1, sizeof(char));
     if (pretval == NULL) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory");
         return NULL;
