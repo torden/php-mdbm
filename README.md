@@ -80,20 +80,28 @@ the following is list of support api on now.
 
 ### php-mdbm
 
-Download from github
+#### Use the composer (packagist)
+
+See the [composer documentation](https://packagist.org/) for use composer
+
+```shell
+composer require torden/php-mdbm
+```
+
+#### Use the source code
 
 ```shell
 git clone https://github.com/torden/php-mdbm
 ```
 
-Or Download the tarball [(tag or release](https://github.com/torden/php-mdbm/releases))
+##### Or Download the tarball [(tag or release](https://github.com/torden/php-mdbm/releases))
 
 ```shell
 wget https://github.com/torden/go-mdbm/archive/vX.X.X.tar.gz
 tar xvzf vX.X.X.tar.gz
 ```
 
-Compile
+##### Compile
 
 ```shell
 cd php-mdbm/src/
@@ -117,6 +125,7 @@ See the [documentation](https://github.com/torden/php-mdbm/blob/master/README.ap
 - [MDBM::FAQ](http://yahoo.github.io/mdbm/guide/faq.html)
 - [DBM](https://en.wikipedia.org/wiki/Dbm)
 - [MDBM::Macro(const)](http://yahoo.github.io/mdbm/api/mdbm_8h.html)
+- [Packagist](https://packagist.org/packages/torden/php-mdbm)
 - [Go-mdbm](https://github.com/torden/go-mdbm)
 - [Py-mdbm](https://github.com/torden/py-mdbm)
 
