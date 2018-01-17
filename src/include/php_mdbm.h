@@ -120,6 +120,7 @@ PHP_FUNCTION(mdbm_get_page_size);
 PHP_FUNCTION(mdbm_set_hash);
 PHP_FUNCTION(mdbm_get_hash);
 PHP_FUNCTION(mdbm_get_limit_size);
+PHP_FUNCTION(mdbm_setspillsize);
 PHP_FUNCTION(mdbm_get_alignment);
 PHP_FUNCTION(mdbm_set_alignment);
 PHP_FUNCTION(mdbm_compress_tree);
@@ -154,6 +155,7 @@ PHP_FUNCTION(mdbm_set_cachemode);
 PHP_FUNCTION(mdbm_get_cachemode);
 PHP_FUNCTION(mdbm_get_cachemode_name);
 
+PHP_FUNCTION(mdbm_clean);
 PHP_FUNCTION(mdbm_check);
 PHP_FUNCTION(mdbm_chk_all_page);
 PHP_FUNCTION(mdbm_chk_page);
@@ -165,6 +167,7 @@ PHP_FUNCTION(mdbm_unlock_pages);
 PHP_FUNCTION(mdbm_get_hash_value);
 PHP_FUNCTION(mdbm_get_page);
 PHP_FUNCTION(mdbm_get_magic_number);
+PHP_FUNCTION(mdbm_set_window_size);
 
 PHP_FUNCTION(mdbm_enable_stat_operations);
 PHP_FUNCTION(mdbm_reset_stat_operations);
