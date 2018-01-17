@@ -542,7 +542,9 @@ const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_reset_stat_operations,  arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_set_stat_time_func,     arginfo_mdbm_pmdbm_flags)
     PHP_FE(mdbm_get_stat_time,          arginfo_mdbm_pmdbm_type)
+    PHP_FE(mdbm_get_stat_counter,       arginfo_mdbm_pmdbm_type)
 
+	PHP_FE(mdbm_stat_all_page,			arginfo_mdbm_pmdbm)
 	PHP_FE(mdbm_dump_all_page,			arginfo_mdbm_pmdbm)
 	PHP_FE(mdbm_dump_page,				arginfo_mdbm_pmdbm_pno)	
 
@@ -3626,6 +3628,67 @@ PHP_FUNCTION(mdbm_get_stat_time) {
     pretval = copy_strptr((char *)ptime, time_len);
     _R_STRINGL(pretval, time_len, 0);
 }
+
+PHP_FUNCTION(mdbm_get_stat_counter) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    mdbm_counter_t value = 0;
+    char *ptime = NULL;
+    size_t time_len = 0;
+    int rv = -1;
+    int id = -1;
+    _ZEND_LONG type = -1;
+    char *pretval = NULL;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &type) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+        RETURN_FALSE;
+    }
+
+    //check the overlow
+    CHECK_OVERFLOW(type, INT_MIN, INT_MAX);
+
+    if (type != MDBM_STAT_TYPE_FETCH && type != MDBM_STAT_TYPE_STORE && type != MDBM_STAT_TYPE_DELETE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : type(=%ld)", type);
+        RETURN_FALSE;
+    }
+
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
+
+    _CAPTURE_START();
+    rv = mdbm_get_stat_counter(mdbm_link->pmdbm, (mdbm_stat_type)type, &value);
+    _CAPTURE_END();
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_LONG((long)value);
+}
+
+
+PHP_FUNCTION(mdbm_stat_all_page) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+        RETURN_FALSE;
+    }
+
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
+
+    _CAPTURE_START();
+    mdbm_stat_all_page(mdbm_link->pmdbm);
+    _CAPTURE_END();
+
+    RETURN_NULL();
+}
+
 
 PHP_FUNCTION(mdbm_dump_all_page) {
 
