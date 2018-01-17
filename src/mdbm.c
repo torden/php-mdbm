@@ -820,7 +820,7 @@ PHP_FUNCTION(mdbm_log_minlevel) {
     }
 
     //check the overlow
-    CHECK_OVERFLOW(mode, MINSHORT, MAXSHORT);
+    CHECK_OVERFLOW(mode, SHRT_MIN, SHRT_MAX);
 
     mdbm_log_minlevel((int)flag);
     RETURN_TRUE;
