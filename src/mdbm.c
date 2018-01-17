@@ -421,6 +421,26 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_pmdbm_type, 0, 0, 2)
     ZEND_ARG_INFO(0, type)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_pmdbm_size, 0, 0, 2)
+    ZEND_ARG_INFO(0, pmdbm)
+    ZEND_ARG_INFO(0, size)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_pmdbm_wsize, 0, 0, 2)
+    ZEND_ARG_INFO(0, pmdbm)
+    ZEND_ARG_INFO(0, wsize)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_pmdbm_pagtenum_flags, 0, 0, 2)
+    ZEND_ARG_INFO(0, pmdbm)
+    ZEND_ARG_INFO(0, pagenum)
+    //ZEND_ARG_INFO(0, flags) //flags Ignored
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_pmdbm_pno, 0, 0, 2)
+    ZEND_ARG_INFO(0, pmdbm)
+    ZEND_ARG_INFO(0, pno)
+ZEND_END_ARG_INFO()
 
 const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_log_minlevel,           arginfo_mdbm_log_minlevel)
@@ -469,6 +489,7 @@ const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_set_hash,               arginfo_mdbm_pmdbm_flags)
     PHP_FE(mdbm_get_hash,               arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_get_limit_size,         arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_setspillsize,         	arginfo_mdbm_pmdbm_size)
     PHP_FE(mdbm_get_alignment,          arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_set_alignment,          arginfo_mdbm_pmdbm_align)
     PHP_FE(mdbm_compress_tree,          arginfo_mdbm_pmdbm)
@@ -502,6 +523,7 @@ const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_get_cachemode,          arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_get_cachemode_name,     arginfo_mdbm_flag)
     
+    PHP_FE(mdbm_clean,                  arginfo_mdbm_pmdbm_pagtenum_flags)
     PHP_FE(mdbm_check,                  arginfo_mdbm_level_verbose)
     PHP_FE(mdbm_chk_all_page,           arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_chk_page,               arginfo_mdbm_pmdbm_pagenum)
@@ -514,11 +536,15 @@ const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_get_hash_value,         arginfo_mdbm_pmdbm_flags)
     PHP_FE(mdbm_get_page,               arginfo_mdbm_key)
     PHP_FE(mdbm_get_magic_number,       arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_set_window_size,       	arginfo_mdbm_pmdbm_wsize)
 
     PHP_FE(mdbm_enable_stat_operations, arginfo_mdbm_pmdbm_flags)
     PHP_FE(mdbm_reset_stat_operations,  arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_set_stat_time_func,     arginfo_mdbm_pmdbm_flags)
     PHP_FE(mdbm_get_stat_time,          arginfo_mdbm_pmdbm_type)
+
+	PHP_FE(mdbm_dump_all_page,			arginfo_mdbm_pmdbm)
+	PHP_FE(mdbm_dump_page,				arginfo_mdbm_pmdbm_pno)	
 
     PHP_FE_END
 };
@@ -1965,6 +1991,32 @@ PHP_FUNCTION(mdbm_get_limit_size) {
     RETURN_LONG(rv);
 }
 
+PHP_FUNCTION(mdbm_setspillsize) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    _ZEND_LONG size = -1;
+    int id = -1;
+    int rv = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &size) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+        RETURN_FALSE;
+    }
+
+    //check the overlow
+    CHECK_OVERFLOW(size, INT_MIN, INT_MAX);
+
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
+
+    _CAPTURE_START();
+    rv = mdbm_setspillsize(mdbm_link->pmdbm, size);
+    _CAPTURE_END();
+
+    RETURN_LONG(rv);
+}
+
 PHP_FUNCTION(mdbm_get_alignment) {
 
     zval *mdbm_link_index = NULL;
@@ -3082,6 +3134,37 @@ PHP_FUNCTION(mdbm_get_cachemode_name) {
 
 }
 
+PHP_FUNCTION(mdbm_clean) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    int rv = -1;
+
+    _ZEND_LONG pagenum = -1;
+    //_ZEND_LONG flags = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &pagenum) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+        RETURN_FALSE;
+    }
+
+	//check the overlow
+	CHECK_OVERFLOW(pagenum, INT_MIN, INT_MAX);
+
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
+
+    _CAPTURE_START();
+    rv = mdbm_clean(mdbm_link->pmdbm, (int)pagenum, 0); //flags Ignored
+    _CAPTURE_END();
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+	RETURN_TRUE;
+}
+
 PHP_FUNCTION(mdbm_check) {
 
     zval *mdbm_link_index = NULL;
@@ -3377,6 +3460,35 @@ PHP_FUNCTION(mdbm_get_magic_number) {
     RETURN_LONG((long)magic);
 }
 
+PHP_FUNCTION(mdbm_set_window_size) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int rv = -1;
+    int id = -1;
+    _ZEND_LONG wsize = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &wsize) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+        RETURN_FALSE;
+    }
+
+    //check the overlow
+    CHECK_OVERFLOW(wsize, INT_MIN, INT_MAX);
+
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
+
+    _CAPTURE_START();
+    rv = mdbm_set_window_size(mdbm_link->pmdbm, (size_t)wsize);
+    _CAPTURE_END();
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
+}
+
 PHP_FUNCTION(mdbm_enable_stat_operations) {
 
     zval *mdbm_link_index = NULL;
@@ -3471,7 +3583,6 @@ PHP_FUNCTION(mdbm_set_stat_time_func) {
     }
 
     RETURN_LONG((long)rv);
-
 }
 
 PHP_FUNCTION(mdbm_get_stat_time) {
@@ -3516,6 +3627,51 @@ PHP_FUNCTION(mdbm_get_stat_time) {
     _R_STRINGL(pretval, time_len, 0);
 }
 
+PHP_FUNCTION(mdbm_dump_all_page) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+        RETURN_FALSE;
+    }
+
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
+
+    _CAPTURE_START();
+    mdbm_dump_all_page(mdbm_link->pmdbm);
+    _CAPTURE_END();
+
+    RETURN_NULL();
+}
+
+PHP_FUNCTION(mdbm_dump_page) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int id = -1;
+    _ZEND_LONG pno = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &pno) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+        RETURN_FALSE;
+    }
+
+    //check the overlow
+    CHECK_OVERFLOW(pno, INT_MIN, INT_MAX);
+
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
+
+    _CAPTURE_START();
+    mdbm_dump_page(mdbm_link->pmdbm, (int)pno);
+    _CAPTURE_END();
+
+    RETURN_NULL();
+}
 
 /*
  * Local variables:
