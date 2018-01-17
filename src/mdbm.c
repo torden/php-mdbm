@@ -58,7 +58,7 @@ static int le_link, loglevel, dev_null, org_stdout, org_stderr;
 typedef long int _ZEND_LONG;
 typedef int _ZEND_STR_LEN;
 
-    #define FETCH_RES(mdbm_link_index, id) {\
+    #define _FETCH_RES(mdbm_link_index, id) {\
         if (mdbm_link_index == NULL) {\
             php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");\
             RETURN_FALSE;\
@@ -78,7 +78,7 @@ typedef int _ZEND_STR_LEN;
 typedef zend_long _ZEND_LONG;
 typedef size_t _ZEND_STR_LEN;
 
-    #define FETCH_RES(mdbm_link_index, id) {\
+    #define _FETCH_RES(mdbm_link_index, id) {\
         mdbm_link = (php_mdbm_open *)zend_fetch_resource(Z_RES_P(mdbm_link_index), LE_MDBM_NAME, le_link);\
         if (mdbm_link == NULL) {\
             php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");\
@@ -97,14 +97,14 @@ typedef size_t _ZEND_STR_LEN;
 
 
 
-#define CHECK_KEYLEN(key_len) {\
+#define _CHECK_MDBM_STR_MAXLEN(key_len) {\
     if (key_len > MDBM_KEYLEN_MAX) {\
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "maximum key length exceeded, (%ld > %ld)", (long)key_len, (long)MDBM_KEYLEN_MAX);\
         RETURN_FALSE;\
     }\
 }
 
-#define CHECK_VALLEN(val_len) {\
+#define _CHECK_VALLEN(val_len) {\
     if (val_len > MDBM_VALLEN_MAX) {\
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "maximum value length exceeded, (%ld > %ld)", (long)val_len, (long)MDBM_VALLEN_MAX);\
         RETURN_FALSE;\
@@ -113,7 +113,7 @@ typedef size_t _ZEND_STR_LEN;
 
 // several mdbm api use the fprintf
 /*
-#define CAPTURE_START() {\
+#define _CAPTURE_START() {\
     dev_null = open("/dev/null", O_WRONLY);\
     org_stdout = dup(STDOUT_FILENO);\
     org_stderr = dup(STDERR_FILENO);\
@@ -123,7 +123,7 @@ typedef size_t _ZEND_STR_LEN;
     }\
 }
 
-#define CAPTURE_END() {\
+#define _CAPTURE_END() {\
     close(dev_null);\
     if (loglevel == -1) {\
         dup2(org_stdout, STDOUT_FILENO);\
@@ -131,23 +131,39 @@ typedef size_t _ZEND_STR_LEN;
     }\
 }
 */
-#define CAPTURE_START()
-#define CAPTURE_END() 
+#define _CAPTURE_START()
+#define _CAPTURE_END() 
 
 #define CHECK_OVERFLOW(org, limit_min, limit_max) {\
     if (limit_min == 0 && org < 0) {\
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` is less than the minimum allowed value of 0", #org);\
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` was less than the minimum allowed value of 0", #org);\
         RETURN_FALSE;\
     }\
     if (org > limit_max) {\
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` is greater than the maxium allowed value of %lld", #org, (long long)limit_max);\
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` was greater than the maxium allowed value of %lld", #org, (long long)limit_max);\
         RETURN_FALSE;\
     }\
     if (org < limit_min) {\
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` is less than the minimum allowed value of %lld", #org, (long long)limit_min);\
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` was less than the minimum allowed value of %lld", #org, (long long)limit_min);\
         RETURN_FALSE;\
     }\
 }
+
+#define CHECK_EMPTY_STR(val, len) {\
+    if (len < 1) {\
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` was empty", #val);\
+        RETURN_FALSE;\
+    }\
+}
+
+#define CHECK_EMPTY_STR_NAME(name, len) {\
+    if (len < 1) {\
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` was empty", name);\
+        RETURN_FALSE;\
+    }\
+}
+
+
 
 #if PHP_VERSION_ID < 70000
 static void _close_mdbm_link(zend_rsrc_list_entry *rsrc TSRMLS_DC) {
@@ -195,7 +211,7 @@ static inline char* copy_strptr(char *dptr, int dsize) {
 
     TSRMLS_FETCH();
 
-    pretval = (char *) ecalloc(dsize+2, sizeof(char));
+    pretval = ecalloc(dsize+2, sizeof(char));
     if (pretval == NULL) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory");
         return NULL;
@@ -254,6 +270,17 @@ static inline int iter_handler(php_mdbm_open *mdbm_link, MDBM_ITER **piter,  zva
         if (item != NULL) {
             convert_to_long(item);
             in_pageno = Z_LVAL_P(item);
+
+            if (in_pageno < 0) {
+                php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` was greater than the maxium allowed value of %lld", HASHKEY_PAGENO, UINT32_MAX);
+                return -2;
+            }
+
+            if (in_pageno > UINT32_MAX) {
+                php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` was less than the minimum allowed value of 0", HASHKEY_PAGENO);
+                return -2;
+            }    
+
         } else {
 			php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_PAGENO);
             return -2;
@@ -263,6 +290,17 @@ static inline int iter_handler(php_mdbm_open *mdbm_link, MDBM_ITER **piter,  zva
         if (item != NULL) {
             convert_to_long(item);
             in_next = Z_LVAL_P(item);
+
+            if (in_next < 0) {
+                php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` was greater than the maxium allowed value of %ld", HASHKEY_NEXT, INT_MAX);
+                return -2;
+            }
+
+            if (in_next > INT_MAX) {
+                php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` was less than the minimum allowed value of %ld", HASHKEY_NEXT, INT_MIN);
+                return -2;
+            }    
+
         } else {
 			php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_NEXT);
             return -2;
@@ -714,6 +752,9 @@ ZEND_MODULE_STARTUP_D(mdbm)
     REGISTER_MDBM_STRING_CONSTANT(HASHKEY_CACHE_NUM_ACCESSES);
     REGISTER_MDBM_STRING_CONSTANT(HASHKEY_CACHE_ACCESS_TIME);
 
+    REGISTER_MDBM_STRING_CONSTANT(PHP_MDBM_VERSION);
+    REGISTER_MDBM_CONSTANT(MDBM_API_VERSION);
+
     return SUCCESS;
 }
 /* }}} */
@@ -772,15 +813,16 @@ PHP_MINFO_FUNCTION(mdbm)
 
 PHP_FUNCTION(mdbm_log_minlevel) {
 
-    _ZEND_LONG flags = 0;
+    _ZEND_LONG flag = 0;
 
-    if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &flags)) {
+    if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &flag)) {
         RETURN_FALSE;
     }
 
-    loglevel = (int)flags;
+    //check the overlow
+    CHECK_OVERFLOW(flag, SHRT_MIN, SHRT_MAX);
 
-    mdbm_log_minlevel((int)flags);
+    mdbm_log_minlevel((int)flag);
     RETURN_TRUE;
 }
 
@@ -790,12 +832,12 @@ PHP_FUNCTION(mdbm_open) {
     _ZEND_STR_LEN path_len = 0;
     _ZEND_LONG flags = 0;
     _ZEND_LONG mode = 0;
-    _ZEND_LONG size = 0;
-    _ZEND_LONG resize = 0;
+    _ZEND_LONG psize = 0;
+    _ZEND_LONG presize = 0;
     MDBM *pmdbm = NULL;
     php_mdbm_open *mdbm_link = NULL;
 
-    if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sll|ll", &pfilepath,&path_len, &flags, &mode, &size, &resize)) {
+    if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sll|ll", &pfilepath,&path_len, &flags, &mode, &psize, &presize)) {
         RETURN_FALSE;
     }
 
@@ -815,6 +857,12 @@ PHP_FUNCTION(mdbm_open) {
         RETURN_FALSE;
 	}
 
+	//check the overlow
+	CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
+	CHECK_OVERFLOW(mode, INT_MIN, INT_MAX);
+	CHECK_OVERFLOW(psize, INT_MIN, INT_MAX);
+	CHECK_OVERFLOW(presize, INT_MIN, INT_MAX);
+
     //create the link
     mdbm_link = (php_mdbm_open *) ecalloc(1, sizeof(php_mdbm_open));
     if (!mdbm_link) {
@@ -827,9 +875,9 @@ PHP_FUNCTION(mdbm_open) {
     mdbm_log_minlevel(-1);
 
     //open the mdbm
-    CAPTURE_START();
-    pmdbm = mdbm_open(pfilepath, (int)flags, (int)mode, (int)size, (int)resize);
-    CAPTURE_END();
+    _CAPTURE_START();
+    pmdbm = mdbm_open(pfilepath, (int)flags, (int)mode, (int)psize, (int)presize);
+    _CAPTURE_END();
     if (!pmdbm) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to open the mdbm");
         RETURN_FALSE;
@@ -864,11 +912,11 @@ PHP_FUNCTION(mdbm_dup_handle) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     pnew_mdbm = mdbm_dup_handle(mdbm_link->pmdbm, flags); //flags Reserved for future use
-    CAPTURE_END();
+    _CAPTURE_END();
     if (pnew_mdbm == NULL) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to duplicate an existing database handle");
         RETURN_FALSE;
@@ -904,7 +952,7 @@ PHP_FUNCTION(mdbm_close) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
     if (mdbm_link_index) {
 
@@ -933,7 +981,7 @@ PHP_FUNCTION(mdbm_close_fd) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
 	mdbm_close_fd(mdbm_link->pmdbm);
 
@@ -964,7 +1012,7 @@ PHP_FUNCTION(mdbm_truncate) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
     mdbm_truncate(mdbm_link->pmdbm);
     RETURN_NULL();
@@ -983,7 +1031,7 @@ PHP_FUNCTION(mdbm_purge) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
     mdbm_purge(mdbm_link->pmdbm);
     RETURN_NULL();
@@ -1004,12 +1052,15 @@ PHP_FUNCTION(mdbm_replace_db) {
         RETURN_FALSE;
     }
 
-    //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    //check the length
+	CHECK_EMPTY_STR_NAME("file", newfile_len);
 
-    CAPTURE_START();
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
+
+    _CAPTURE_START();
     rv = mdbm_replace_db(mdbm_link->pmdbm, pnewfile);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1032,9 +1083,13 @@ PHP_FUNCTION(mdbm_replace_file) {
         RETURN_FALSE;
     }
 
-    CAPTURE_START();
+    //check the length
+	CHECK_EMPTY_STR_NAME("oldfile", oldfile_len);
+	CHECK_EMPTY_STR_NAME("newfile", newfile_len);
+
+    _CAPTURE_START();
     rv = mdbm_replace_file((const char*)poldfile, (const char *)pnewfile);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1048,7 +1103,7 @@ PHP_FUNCTION(mdbm_pre_split) {
     php_mdbm_open *mdbm_link = NULL;
     int rv = -1;
     int id = -1;
-    long pages = -1;
+    _ZEND_LONG pages = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &pages) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
@@ -1059,11 +1114,11 @@ PHP_FUNCTION(mdbm_pre_split) {
     CHECK_OVERFLOW(pages, 0, UINT32_MAX);
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_pre_split(mdbm_link->pmdbm, (mdbm_ubig_t)pages);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1077,8 +1132,8 @@ PHP_FUNCTION(mdbm_fcopy) {
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
     int rv = -1;
-    long mode = 0644;
-    long flags = 0;
+    _ZEND_LONG mode = 0644;
+    _ZEND_LONG flags = 0;
 
     char *pnewfile = NULL;
     _ZEND_STR_LEN newfile_len = 0;
@@ -1087,6 +1142,9 @@ PHP_FUNCTION(mdbm_fcopy) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
+
+	//check the length
+	CHECK_EMPTY_STR_NAME("newfile", newfile_len);
 
     //check the overlow
     CHECK_OVERFLOW(mode, 0, UINT_MAX);
@@ -1099,7 +1157,7 @@ PHP_FUNCTION(mdbm_fcopy) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
     int fd = open(pnewfile, O_RDWR | O_CREAT | O_TRUNC, (mode_t)mode);
     if(fd == -1) {
@@ -1107,10 +1165,10 @@ PHP_FUNCTION(mdbm_fcopy) {
         RETURN_FALSE;
     } 
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_fcopy(mdbm_link->pmdbm, fd, flags);
     close(fd);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1131,11 +1189,11 @@ PHP_FUNCTION(mdbm_sync) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_sync(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1156,11 +1214,11 @@ PHP_FUNCTION(mdbm_fsync) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_fsync(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1181,11 +1239,11 @@ PHP_FUNCTION(mdbm_get_lockmode) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_get_lockmode(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1206,11 +1264,11 @@ PHP_FUNCTION(mdbm_lock) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_lock(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1231,11 +1289,11 @@ PHP_FUNCTION(mdbm_trylock) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_trylock(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1260,16 +1318,22 @@ PHP_FUNCTION(mdbm_plock) {
         RETURN_FALSE;
     }
 
+    //check the length
+	CHECK_EMPTY_STR_NAME("key", key_len);
+
+	//check the overlow
+	CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
+
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
     //make a datum
     datum_key.dptr = pkey;
     datum_key.dsize = (int)key_len;
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_plock(mdbm_link->pmdbm, &datum_key, (int)flags);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1294,16 +1358,22 @@ PHP_FUNCTION(mdbm_tryplock) {
         RETURN_FALSE;
     }
 
+    //check the length
+	CHECK_EMPTY_STR_NAME("key", key_len);
+
+	//check the overlow
+	CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
+
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
     //make a datum
     datum_key.dptr = pkey;
     datum_key.dsize = (int)key_len;
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_tryplock(mdbm_link->pmdbm, &datum_key, (int)flags);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1324,11 +1394,11 @@ PHP_FUNCTION(mdbm_lock_shared) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_lock_shared(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1349,11 +1419,11 @@ PHP_FUNCTION(mdbm_trylock_shared) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_trylock_shared(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1378,16 +1448,22 @@ PHP_FUNCTION(mdbm_lock_smart) {
         RETURN_FALSE;
     }
 
+    //check the length
+	CHECK_EMPTY_STR_NAME("key", key_len);
+
+	//check the overlow
+	CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
+
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
     //make a datum
     datum_key.dptr = pkey;
     datum_key.dsize = (int)key_len;
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_lock_smart(mdbm_link->pmdbm, &datum_key, (int)flags);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1412,16 +1488,22 @@ PHP_FUNCTION(mdbm_trylock_smart) {
         RETURN_FALSE;
     }
 
+    //check the length
+	CHECK_EMPTY_STR_NAME("key", key_len);
+
+	//check the overlow
+	CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
+
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
     //make a datum
     datum_key.dptr = pkey;
     datum_key.dsize = (int)key_len;
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_trylock_smart(mdbm_link->pmdbm, &datum_key, (int)flags);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1442,11 +1524,11 @@ PHP_FUNCTION(mdbm_unlock) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_unlock(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1471,16 +1553,22 @@ PHP_FUNCTION(mdbm_punlock) {
         RETURN_FALSE;
     }
 
+    //check the length
+	CHECK_EMPTY_STR_NAME("key", key_len);
+
+	//check the overlow
+	CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
+
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
     //make a datum
     datum_key.dptr = pkey;
     datum_key.dsize = (int)key_len;
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_punlock(mdbm_link->pmdbm, &datum_key, (int)flags);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1505,16 +1593,22 @@ PHP_FUNCTION(mdbm_unlock_smart) {
         RETURN_FALSE;
     }
 
+    //check the length
+	CHECK_EMPTY_STR_NAME("key", key_len);
+
+	//check the overlow
+	CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
+
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
     //make a datum
     datum_key.dptr = pkey;
     datum_key.dsize = (int)key_len;
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_unlock_smart(mdbm_link->pmdbm, &datum_key, (int)flags);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1536,11 +1630,11 @@ PHP_FUNCTION(mdbm_islocked) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_islocked(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == 0) {
         RETURN_FALSE;
     } else if (rv == 1) {
@@ -1564,11 +1658,11 @@ PHP_FUNCTION(mdbm_isowned) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_isowned(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == 0) {
         RETURN_FALSE;
     } else if (rv == 1) {
@@ -1596,6 +1690,9 @@ PHP_FUNCTION(mdbm_lock_reset) {
         RETURN_FALSE;
     }
 
+    //check the length
+	CHECK_EMPTY_STR_NAME("mdbm file path", dbfn_len);
+
     strncpy(fn, pdbfn, dbfn_len);
     if (fn == NULL) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory");
@@ -1604,9 +1701,9 @@ PHP_FUNCTION(mdbm_lock_reset) {
 
 
     //flags Reserved for future use, and must be 0.
-    CAPTURE_START();
+    _CAPTURE_START();
 	rv = mdbm_lock_reset((const char *)&fn, 0);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1631,15 +1728,18 @@ PHP_FUNCTION(mdbm_delete_lockfiles) {
         RETURN_FALSE;
     }
 
+    //check the length
+	CHECK_EMPTY_STR_NAME("mdbm file path", dbfn_len);
+
     strncpy(fn, pdbfn, dbfn_len);
     if (fn == NULL) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory");
         RETURN_TRUE;
     }
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_delete_lockfiles((const char *)&fn);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1660,11 +1760,11 @@ PHP_FUNCTION(mdbm_preload) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_preload(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1685,11 +1785,11 @@ PHP_FUNCTION(mdbm_get_errno) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_get_errno(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     RETURN_LONG(rv);
 }
 
@@ -1699,7 +1799,7 @@ PHP_FUNCTION(mdbm_limit_dir_size) {
     php_mdbm_open *mdbm_link = NULL;
     int rv = -1;
     int id = -1;
-    long pages = -1;
+    _ZEND_LONG pages = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &pages) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
@@ -1710,11 +1810,11 @@ PHP_FUNCTION(mdbm_limit_dir_size) {
     CHECK_OVERFLOW(pages, INT_MIN, INT_MAX);
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_limit_dir_size(mdbm_link->pmdbm, (int)pages);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1735,11 +1835,11 @@ PHP_FUNCTION(mdbm_get_version) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_get_version(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     RETURN_LONG(rv);
 }
 
@@ -1757,11 +1857,11 @@ PHP_FUNCTION(mdbm_get_size) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_get_size(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     RETURN_LONG(rv);
 }
 
@@ -1778,11 +1878,11 @@ PHP_FUNCTION(mdbm_get_page_size) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_get_page_size(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     RETURN_LONG(rv);
 }
 
@@ -1799,11 +1899,11 @@ PHP_FUNCTION(mdbm_get_hash) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_get_hash(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
 
     RETURN_LONG(rv);
 }
@@ -1822,17 +1922,20 @@ PHP_FUNCTION(mdbm_set_hash) {
         RETURN_FALSE;
     }
 
+	//check the overlow
+	CHECK_OVERFLOW(hash, INT_MIN, INT_MAX);
+
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
     if (hash < MDBM_HASH_CRC32 || hash > MDBM_MAX_HASH) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : hash(=%ld)", hash);
         RETURN_FALSE;
     }
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_set_hash(mdbm_link->pmdbm, (int)hash);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -1853,11 +1956,11 @@ PHP_FUNCTION(mdbm_get_limit_size) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_get_limit_size(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
 
     RETURN_LONG(rv);
 }
@@ -1875,11 +1978,11 @@ PHP_FUNCTION(mdbm_get_alignment) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_get_alignment(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
 
     RETURN_LONG(rv);
 }
@@ -1889,7 +1992,7 @@ PHP_FUNCTION(mdbm_set_alignment) {
     zval *mdbm_link_index = NULL;
     php_mdbm_open *mdbm_link = NULL;
 
-    long align = -1;
+    _ZEND_LONG align = -1;
     int id = -1;
     int rv = -1;
 
@@ -1910,11 +2013,11 @@ PHP_FUNCTION(mdbm_set_alignment) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_set_alignment(mdbm_link->pmdbm, (int)align);
-    CAPTURE_END();
+    _CAPTURE_END();
 
     RETURN_LONG(rv);
 }
@@ -1938,7 +2041,7 @@ PHP_FUNCTION(mdbm_compress_tree) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
     mdbm_compress_tree(mdbm_link->pmdbm);
     RETURN_NULL();
@@ -1966,14 +2069,18 @@ PHP_FUNCTION(mdbm_store) {
         RETURN_FALSE;
     }
 
-    //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+	//check the length
+	CHECK_EMPTY_STR_NAME("key", key_len);
+	CHECK_EMPTY_STR_NAME("val", val_len);
 
     //check the length of key
-    CHECK_KEYLEN(key_len);
+    _CHECK_MDBM_STR_MAXLEN(key_len);
 
     //check the length of value
-    CHECK_VALLEN(val_len);
+    _CHECK_VALLEN(val_len);
+
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
 
     psetkey = copy_strptr((char *)pkey, key_len);
     if (psetkey == NULL) {
@@ -1992,9 +2099,9 @@ PHP_FUNCTION(mdbm_store) {
     val.dsize = (int)val_len;
 
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_store(mdbm_link->pmdbm, key, val, (int)flags);
-    CAPTURE_END();
+    _CAPTURE_END();
 
     efree(psetkey);
     efree(psetval);
@@ -2036,14 +2143,18 @@ PHP_FUNCTION(mdbm_store_r) {
         RETURN_FALSE;
     }
 
-    //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+	//check the length
+	CHECK_EMPTY_STR_NAME("key", key_len);
+	CHECK_EMPTY_STR_NAME("val", val_len);
 
     //check the length of key
-    CHECK_KEYLEN(key_len);
+    _CHECK_MDBM_STR_MAXLEN(key_len);
 
     //check the length of value
-    CHECK_VALLEN(val_len);
+    _CHECK_VALLEN(val_len);
+
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
 
     psetkey = copy_strptr((char *)pkey, key_len);
     if (psetkey == NULL) {
@@ -2062,9 +2173,9 @@ PHP_FUNCTION(mdbm_store_r) {
     val.dsize = (int)val_len;
 
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_store_r(mdbm_link->pmdbm, &key, &val, (int)flags, parg_iter);
-    CAPTURE_END();
+    _CAPTURE_END();
 
     efree(psetkey);
     efree(psetval);
@@ -2102,19 +2213,22 @@ PHP_FUNCTION(mdbm_fetch) {
         RETURN_FALSE;
     }
 
-    //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+	//check the length
+	CHECK_EMPTY_STR_NAME("key", key_len);
 
     //check the length of key
-    CHECK_KEYLEN(key_len);
+    _CHECK_MDBM_STR_MAXLEN(key_len);
+
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
 
     //make a datum
     key.dptr = pkey;
     key.dsize = (int)key_len;
 
-    CAPTURE_START();
+    _CAPTURE_START();
     val = mdbm_fetch(mdbm_link->pmdbm, key);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (val.dptr == NULL) {
         RETURN_FALSE;
     }
@@ -2149,11 +2263,14 @@ PHP_FUNCTION(mdbm_fetch_r) {
         RETURN_FALSE;
     }
 
-    //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+	//check the length
+	CHECK_EMPTY_STR_NAME("key", key_len);
 
     //check the length of key
-    CHECK_KEYLEN(key_len);
+    _CHECK_MDBM_STR_MAXLEN(key_len);
+
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
 
     //auto select to iter
     rv = iter_handler(mdbm_link, &parg_iter, NULL);
@@ -2165,9 +2282,9 @@ PHP_FUNCTION(mdbm_fetch_r) {
     key.dptr = pkey;
     key.dsize = (int)key_len;
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_fetch_r(mdbm_link->pmdbm, &key, &val, parg_iter);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -2208,11 +2325,14 @@ PHP_FUNCTION(mdbm_fetch_dup_r) {
         RETURN_FALSE;
     }
 
-    //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    //check the length
+	CHECK_EMPTY_STR_NAME("key", key_len);
 
     //check the length of key
-    CHECK_KEYLEN(key_len);
+    _CHECK_MDBM_STR_MAXLEN(key_len);
+
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
 
     //auto select to iter
     rv = iter_handler(mdbm_link, &parg_iter, NULL);
@@ -2224,9 +2344,9 @@ PHP_FUNCTION(mdbm_fetch_dup_r) {
     key.dptr = pkey;
     key.dsize = (int)key_len;
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_fetch_dup_r(mdbm_link->pmdbm, &key, &val, parg_iter);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -2269,11 +2389,14 @@ PHP_FUNCTION(mdbm_fetch_info) {
         RETURN_FALSE;
     }
 
-    //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    //check the length
+	CHECK_EMPTY_STR_NAME("key", key_len);
 
     //check the length of key
-    CHECK_KEYLEN(key_len);
+    _CHECK_MDBM_STR_MAXLEN(key_len);
+
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
 
     //auto select to iter
     rv = iter_handler(mdbm_link, &parg_iter, NULL);
@@ -2285,9 +2408,9 @@ PHP_FUNCTION(mdbm_fetch_info) {
     key.dptr = pkey;
     key.dsize = (int)key_len;
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_fetch_info(mdbm_link->pmdbm, &key, &val, &buf, &info, parg_iter);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -2327,19 +2450,25 @@ PHP_FUNCTION(mdbm_delete) {
         RETURN_FALSE;
     }
 
-    //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    //check the length
+	CHECK_EMPTY_STR_NAME("key", key_len);
 
     //check the length of key
-    CHECK_KEYLEN(key_len);
+    _CHECK_MDBM_STR_MAXLEN(key_len);
+
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
+
+    //check the length of key
+    _CHECK_MDBM_STR_MAXLEN(key_len);
 
     //make a datum
     key.dptr = pkey;
     key.dsize = (int)key_len;
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_delete(mdbm_link->pmdbm, key);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -2363,7 +2492,7 @@ PHP_FUNCTION(mdbm_delete_r) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
     //auto select to iter
     rv = iter_handler(mdbm_link, &parg_iter, arr);
@@ -2371,9 +2500,9 @@ PHP_FUNCTION(mdbm_delete_r) {
         RETURN_FALSE;
     }
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_delete_r(mdbm_link->pmdbm, parg_iter );
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -2400,11 +2529,11 @@ PHP_FUNCTION(mdbm_first) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     kv = mdbm_first(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (kv.key.dptr == NULL || kv.val.dptr == NULL) {
         RETURN_FALSE;
     }
@@ -2442,11 +2571,11 @@ PHP_FUNCTION(mdbm_next) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     kv = mdbm_next(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (kv.key.dptr == NULL || kv.val.dptr == NULL) {
         RETURN_FALSE;
     }
@@ -2483,11 +2612,11 @@ PHP_FUNCTION(mdbm_firstkey) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     key = mdbm_firstkey(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (key.dptr == NULL) {
         RETURN_FALSE;
     }
@@ -2517,11 +2646,11 @@ PHP_FUNCTION(mdbm_nextkey) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     val = mdbm_nextkey(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (val.dptr == NULL) {
         RETURN_FALSE;
     }
@@ -2548,7 +2677,7 @@ PHP_FUNCTION(mdbm_reset_global_iter) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
     MDBM_ITER_INIT(&(*mdbm_link).iter);
 
@@ -2568,7 +2697,7 @@ PHP_FUNCTION(mdbm_get_global_iter) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
     array_init(return_value);
     add_assoc_long(return_value, HASHKEY_PAGENO, (*mdbm_link).iter.m_pageno);
@@ -2578,8 +2707,8 @@ PHP_FUNCTION(mdbm_get_global_iter) {
 PHP_FUNCTION(mdbm_get_iter) {
 
     MDBM_ITER iter;
-    long in_pageno = -1;
-    long in_next = -1;
+    _ZEND_LONG in_pageno = -1;
+    _ZEND_LONG in_next = -1;
     int id = -1;
     int rv = -1;
     int argc = ZEND_NUM_ARGS();
@@ -2589,6 +2718,11 @@ PHP_FUNCTION(mdbm_get_iter) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Failed to parsing the parameters");
         RETURN_FALSE;
     }
+
+	//check the overlow
+	CHECK_OVERFLOW(in_pageno, 0, UINT32_MAX); //mdbm_usib_t = uint32_t
+	CHECK_OVERFLOW(in_next, INT_MIN, INT_MAX);
+
 
     if (argc < 1) {
         MDBM_ITER_INIT(&iter);
@@ -2622,7 +2756,7 @@ PHP_FUNCTION(mdbm_first_r) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
     //auto select to iter
     rv = iter_handler(mdbm_link, &parg_iter, arr);
@@ -2630,9 +2764,9 @@ PHP_FUNCTION(mdbm_first_r) {
         RETURN_FALSE;
     }
 
-    CAPTURE_START();
+    _CAPTURE_START();
     kv = mdbm_first_r(mdbm_link->pmdbm, parg_iter);
-    CAPTURE_END();
+    _CAPTURE_END();
 
     if (kv.key.dptr == NULL || kv.val.dptr == NULL) {
         RETURN_FALSE;
@@ -2677,7 +2811,7 @@ PHP_FUNCTION(mdbm_next_r) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
     //auto select to iter
     rv = iter_handler(mdbm_link, &parg_iter, arr);
@@ -2685,9 +2819,9 @@ PHP_FUNCTION(mdbm_next_r) {
         RETURN_FALSE;
     }
 
-    CAPTURE_START();
+    _CAPTURE_START();
     kv = mdbm_next_r(mdbm_link->pmdbm, parg_iter);
-    CAPTURE_END();
+    _CAPTURE_END();
 
     if (kv.key.dptr == NULL || kv.val.dptr == NULL) {
         RETURN_FALSE;
@@ -2733,7 +2867,7 @@ PHP_FUNCTION(mdbm_firstkey_r) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
     //auto select to iter
     rv = iter_handler(mdbm_link, &parg_iter, arr);
@@ -2741,9 +2875,9 @@ PHP_FUNCTION(mdbm_firstkey_r) {
         RETURN_FALSE;
     }
 
-    CAPTURE_START();
+    _CAPTURE_START();
     key  = mdbm_firstkey_r(mdbm_link->pmdbm, parg_iter);
-    CAPTURE_END();
+    _CAPTURE_END();
 
     if (key.dptr == NULL) {
         RETURN_FALSE;
@@ -2781,7 +2915,7 @@ PHP_FUNCTION(mdbm_nextkey_r) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
     //auto select to iter
     rv = iter_handler(mdbm_link, &parg_iter, arr);
@@ -2789,9 +2923,9 @@ PHP_FUNCTION(mdbm_nextkey_r) {
         RETURN_FALSE;
     }
 
-    CAPTURE_START();
+    _CAPTURE_START();
     key = mdbm_nextkey_r(mdbm_link->pmdbm, parg_iter);
-    CAPTURE_END();
+    _CAPTURE_END();
 
     if (key.dptr == NULL) {
         RETURN_FALSE;
@@ -2823,11 +2957,11 @@ PHP_FUNCTION(mdbm_count_records) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_count_records(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     RETURN_LONG(rv);
 }
 
@@ -2844,11 +2978,11 @@ PHP_FUNCTION(mdbm_count_pages) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_count_pages(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     RETURN_LONG(rv);
 }
 
@@ -2866,17 +3000,20 @@ PHP_FUNCTION(mdbm_set_cachemode) {
         RETURN_FALSE;
     }
 
-    //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+	//check the overlow
+	CHECK_OVERFLOW(flag, INT_MIN, INT_MAX);
 
     if (flag < MDBM_CACHEMODE_NONE || flag > MDBM_CACHEMODE_MAX) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : flag(=%ld)", flag);
         RETURN_FALSE;
     }
 
-    CAPTURE_START();
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
+
+    _CAPTURE_START();
     rv = mdbm_set_cachemode(mdbm_link->pmdbm, (int)flag);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -2897,11 +3034,11 @@ PHP_FUNCTION(mdbm_get_cachemode) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_get_cachemode(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -2917,7 +3054,7 @@ PHP_FUNCTION(mdbm_get_cachemode_name) {
     int rv = -1;
 
     const char *pcache_name = NULL;
-    long cacheno = -1;
+    _ZEND_LONG cacheno = -1;
 
     char *pretval = NULL;
     int retval_len = -1;
@@ -2927,9 +3064,12 @@ PHP_FUNCTION(mdbm_get_cachemode_name) {
         RETURN_FALSE;
     }
 
-    CAPTURE_START();
+	//check the overlow
+	CHECK_OVERFLOW(cacheno, INT_MIN, INT_MAX);
+
+    _CAPTURE_START();
     pcache_name = mdbm_get_cachemode_name((int)cacheno); //return value from stack
-    CAPTURE_END();
+    _CAPTURE_END();
     retval_len = (int)strlen(pcache_name);
 
 
@@ -2957,22 +3097,26 @@ PHP_FUNCTION(mdbm_check) {
         RETURN_FALSE;
     }
 
-    //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+	//check the overlow
+	CHECK_OVERFLOW(level, INT_MIN, INT_MAX);
 
     if (level < MDBM_CHECK_HEADER || level > MDBM_CHECK_ALL) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : level(=%ld)", level);
         RETURN_FALSE;
     }
 
-    if (verbose < 0 || verbose > 1 ) {
+    if ((int)verbose < 0 || (int)verbose > 1 ) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : verbose(=%d)", (int)verbose);
         RETURN_FALSE;
     }
 
-    CAPTURE_START();
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
+
+    
+    _CAPTURE_START();
     rv = mdbm_check(mdbm_link->pmdbm, (int)level, (int)verbose);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -2993,11 +3137,11 @@ PHP_FUNCTION(mdbm_chk_all_page) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_chk_all_page(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -3019,12 +3163,15 @@ PHP_FUNCTION(mdbm_chk_page) {
         RETURN_FALSE;
     }
 
-    //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+	//check the overlow
+	CHECK_OVERFLOW(pagenum, INT_MIN, INT_MAX);
 
-    CAPTURE_START();
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
+
+    _CAPTURE_START();
     rv = mdbm_chk_page(mdbm_link->pmdbm, (int)pagenum);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -3046,17 +3193,20 @@ PHP_FUNCTION(mdbm_protect) {
         RETURN_FALSE;
     }
 
-    //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+	//check the overlow
+	CHECK_OVERFLOW(protect, INT_MIN, INT_MAX);
 
     if (protect < MDBM_PROT_NONE || protect > MDBM_PROT_ACCESS) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : protect(=%ld)", protect);
         RETURN_FALSE;
     }
 
-    CAPTURE_START();
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
+
+    _CAPTURE_START();
     rv = mdbm_protect(mdbm_link->pmdbm, (int)protect);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -3077,11 +3227,11 @@ PHP_FUNCTION(mdbm_lock_pages) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_lock_pages(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -3102,11 +3252,11 @@ PHP_FUNCTION(mdbm_unlock_pages) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_unlock_pages(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -3124,14 +3274,21 @@ PHP_FUNCTION(mdbm_get_hash_value) {
     char *pkey = NULL;
     _ZEND_STR_LEN key_len = -1;
     _ZEND_LONG hfc = -1;
+    
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl", &pkey, &key_len, &hfc) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
+    //check the length
+	CHECK_EMPTY_STR_NAME("key", key_len);
+
+	//check the overlow
+	CHECK_OVERFLOW(hfc, INT_MIN, INT_MAX);
+
     if (hfc < MDBM_HASH_CRC32 || hfc > MDBM_MAX_HASH) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : hash function code(=%ld)", hfc);
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : hash function code(=%d)", (int)hfc);
         RETURN_FALSE;
     }
 
@@ -3144,14 +3301,14 @@ PHP_FUNCTION(mdbm_get_hash_value) {
     key.dptr = pkey;
     key.dsize = (int)key_len;
 
-    CAPTURE_START();
-    rv = mdbm_get_hash_value(key, hfc, &hashv);
-    CAPTURE_END();
+    _CAPTURE_START();
+    rv = mdbm_get_hash_value(key, (int)hfc, &hashv);
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
 
-    RETURN_LONG(hashv);
+    RETURN_LONG((long)hashv);
 }
 
 PHP_FUNCTION(mdbm_get_page) {
@@ -3171,19 +3328,22 @@ PHP_FUNCTION(mdbm_get_page) {
         RETURN_FALSE;
     }
 
-    //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    //check the length
+	CHECK_EMPTY_STR_NAME("key", key_len);
 
     //check the length of key
-    CHECK_KEYLEN(key_len);
+    _CHECK_MDBM_STR_MAXLEN(key_len);
+
+     //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
 
     //make a datum
     key.dptr = pkey;
     key.dsize = (int)key_len;
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_get_page(mdbm_link->pmdbm, &key);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -3205,11 +3365,11 @@ PHP_FUNCTION(mdbm_get_magic_number) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_get_magic_number(mdbm_link->pmdbm, &magic);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -3223,7 +3383,7 @@ PHP_FUNCTION(mdbm_enable_stat_operations) {
     php_mdbm_open *mdbm_link = NULL;
     int rv = -1;
     int id = -1;
-    long flags = -1;
+    _ZEND_LONG flags = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &flags) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
@@ -3239,11 +3399,11 @@ PHP_FUNCTION(mdbm_enable_stat_operations) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_enable_stat_operations(mdbm_link->pmdbm, (int)flags);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -3266,16 +3426,16 @@ PHP_FUNCTION(mdbm_reset_stat_operations) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
 	if (mdbm_link->enable_stat != 1) {
 	    php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - Required! call to mdbm_reset_stat_operations aftre mdbm_enable_stat_operations.");
         RETURN_FALSE;
 	}
 
-    CAPTURE_START();
+    _CAPTURE_START();
     mdbm_reset_stat_operations(mdbm_link->pmdbm);
-    CAPTURE_END();
+    _CAPTURE_END();
     RETURN_NULL();
 }
 
@@ -3285,7 +3445,7 @@ PHP_FUNCTION(mdbm_set_stat_time_func) {
     php_mdbm_open *mdbm_link = NULL;
     int rv = -1;
     int id = -1;
-    long flags = -1;
+    _ZEND_LONG flags = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &flags) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
@@ -3301,11 +3461,11 @@ PHP_FUNCTION(mdbm_set_stat_time_func) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_set_stat_time_func(mdbm_link->pmdbm, flags);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
@@ -3323,7 +3483,7 @@ PHP_FUNCTION(mdbm_get_stat_time) {
     size_t time_len = 0;
     int rv = -1;
     int id = -1;
-    long type = -1;
+    _ZEND_LONG type = -1;
     char *pretval = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &type) == FAILURE) {
@@ -3340,11 +3500,11 @@ PHP_FUNCTION(mdbm_get_stat_time) {
     }
 
     //fetch the resource
-    FETCH_RES(mdbm_link_index, id);
+    _FETCH_RES(mdbm_link_index, id);
 
-    CAPTURE_START();
+    _CAPTURE_START();
     rv = mdbm_get_stat_time(mdbm_link->pmdbm, (mdbm_stat_type)type, &value);
-    CAPTURE_END();
+    _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
     }
