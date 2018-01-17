@@ -387,6 +387,8 @@ These constants are defined by the py-mdbm.
 
 |*Constants*|*Comment*|
 |:--|:--|
+|PHP_MDBM_VERSION|php-mdbm's version|
+|MDBM_API_VERSION|mdbm api version|
 |MDBM_KEYLEN_MAX|Maximum key size|
 |MDBM_VALLEN_MAX|Maximum key size|
 |MDBM_O_RDONLY           |Read-only access |
