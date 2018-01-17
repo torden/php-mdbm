@@ -174,6 +174,9 @@ PHP_FUNCTION(mdbm_reset_stat_operations);
 PHP_FUNCTION(mdbm_set_stat_time_func);
 PHP_FUNCTION(mdbm_get_stat_time);
 
+PHP_FUNCTION(mdbm_dump_all_page);
+PHP_FUNCTION(mdbm_dump_page);
+
 
 /* 
   	Declare any global variables you may need between the BEGIN
