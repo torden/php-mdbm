@@ -41,6 +41,8 @@
 #define HASHKEY_CACHE_NUM_ACCESSES      "cache_num_accesses"
 #define HASHKEY_CACHE_ACCESS_TIME       "cache_access_time"
 
+#define DEFAULT_BUF_SIZE 64
+
 //ZEND_DECLARE_MODULE_GLOBALS(mdbm)
 
 typedef struct _php_mdbm_open {
@@ -542,13 +544,17 @@ const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_reset_stat_operations,  arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_set_stat_time_func,     arginfo_mdbm_pmdbm_flags)
     PHP_FE(mdbm_get_stat_time,          arginfo_mdbm_pmdbm_type)
-    PHP_FE(mdbm_get_stat_counter,       arginfo_mdbm_pmdbm_type)
-
+    
     PHP_FE(mdbm_stat_all_page,          arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_dump_all_page,          arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_dump_page,              arginfo_mdbm_pmdbm_pno)    
 
+    PHP_FE(mdbm_get_stat_counter,       arginfo_mdbm_pmdbm_type)
     PHP_FE(mdbm_get_stats,              arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_get_db_info,            arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_get_window_stats,       arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_get_db_stats,           arginfo_mdbm_pmdbm_flags)
+
     PHP_FE_END
 };
  
@@ -3779,6 +3785,141 @@ PHP_FUNCTION(mdbm_get_stats) {
     add_assoc_long(return_value, "s_large_min_size", (long)s.s_large_min_size);
     add_assoc_long(return_value, "s_large_max_size", (long)s.s_large_max_size);
     add_assoc_long(return_value, "s_cache_mode", (long)s.s_cache_mode);
+}
+
+PHP_FUNCTION(mdbm_get_db_info) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    mdbm_db_info_t info = {0x00,};
+    int id = -1;
+    int rv = -1;
+    char *pretval = NULL;
+    size_t retval_len = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+        RETURN_FALSE;
+    }
+
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
+
+    _CAPTURE_START();
+    rv = mdbm_get_db_info(mdbm_link->pmdbm, &info);
+    _CAPTURE_END();
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    if (strlen(info.db_hash_funcname) > DEFAULT_BUF_SIZE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Panic - buffer size too small..(buf=%d, real=%ld)", DEFAULT_BUF_SIZE, strlen(info.db_hash_funcname));
+        RETURN_FALSE;
+    }
+
+    retval_len = strlen(info.db_hash_funcname);
+    pretval = copy_strptr((char *)info.db_hash_funcname, retval_len);
+
+    array_init(return_value);
+    add_assoc_long(return_value, "db_page_size", (long)info.db_page_size);
+    add_assoc_long(return_value, "db_num_pages", (long)info.db_num_pages);
+    add_assoc_long(return_value, "db_max_pages", (long)info.db_max_pages);
+    add_assoc_long(return_value, "db_num_dir_pages", (long)info.db_num_dir_pages);
+    add_assoc_long(return_value, "db_dir_width", (long)info.db_dir_width);
+    add_assoc_long(return_value, "db_max_dir_shift", (long)info.db_max_dir_shift);
+    add_assoc_long(return_value, "db_dir_min_level", (long)info.db_dir_min_level);
+    add_assoc_long(return_value, "db_dir_max_level", (long)info.db_dir_max_level);
+    add_assoc_long(return_value, "db_dir_num_nodes", (long)info.db_dir_num_nodes);
+    add_assoc_long(return_value, "db_hash_func", (long)info.db_hash_func);
+    _ADD_ASSOC_STRINGL(return_value, "db_hash_funcname", pretval, retval_len, 0);
+    add_assoc_long(return_value, "db_spill_size", (long)info.db_spill_size);
+    add_assoc_long(return_value, "db_cache_mode", (long)info.db_cache_mode);
+}
+
+PHP_FUNCTION(mdbm_get_window_stats) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    mdbm_window_stats_t stats = {0x00,};
+    int id = -1;
+    int rv = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+        RETURN_FALSE;
+    }
+
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
+
+    _CAPTURE_START();
+    rv = mdbm_get_window_stats(mdbm_link->pmdbm, &stats, sizeof(stats));
+    _CAPTURE_END();
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    array_init(return_value);
+    add_assoc_long(return_value, "w_num_reused", (long)stats.w_num_reused);
+    add_assoc_long(return_value, "w_num_remapped", (long)stats.w_num_remapped);
+    add_assoc_long(return_value, "w_window_size", (long)stats.w_window_size);
+    add_assoc_long(return_value, "w_max_window_used", (long)stats.w_max_window_used);
+}
+
+PHP_FUNCTION(mdbm_get_db_stats) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+
+    mdbm_db_info_t info = {0x00,};
+    mdbm_stat_info_t stats = {0x00,};
+    _ZEND_LONG flags = -1;
+
+    int id = -1;
+    int rv = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &flags) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+        RETURN_FALSE;
+    }
+
+    if (flags != MDBM_STAT_NOLOCK && flags != MDBM_ITERATE_NOLOCK) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : flags(=%ld)", flags);
+        RETURN_FALSE;
+    }
+
+    //check the overlow
+    CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
+ 
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
+
+    _CAPTURE_START();
+    rv = mdbm_get_db_stats(mdbm_link->pmdbm, &info, &stats, (int)flags);
+    _CAPTURE_END();
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    array_init(return_value);
+    add_assoc_zval(zval* pzval, const char* key, zval* value)
+
+    //mdbm_db_info_t
+    /*
+    add_assoc_long(return_value, "db_page_size", (long)info.db_page_size);
+    add_assoc_long(return_value, "db_num_pages", (long)info.db_num_pages);
+    add_assoc_long(return_value, "db_max_pages", (long)info.db_max_pages);
+    add_assoc_long(return_value, "db_num_dir_pages", (long)info.db_num_dir_pages);
+    add_assoc_long(return_value, "db_dir_width", (long)info.db_dir_width);
+    add_assoc_long(return_value, "db_max_dir_shift", (long)info.db_max_dir_shift);
+    add_assoc_long(return_value, "db_dir_min_level", (long)info.db_dir_min_level);
+    add_assoc_long(return_value, "db_dir_max_level", (long)info.db_dir_max_level);
+    add_assoc_long(return_value, "db_dir_num_nodes", (long)info.db_dir_num_nodes);
+    add_assoc_long(return_value, "db_hash_func", (long)info.db_hash_func);
+    _ADD_ASSOC_STRINGL(return_value, "db_hash_funcname", pretval, retval_len, 0);
+    add_assoc_long(return_value, "db_spill_size", (long)info.db_spill_size);
+    add_assoc_long(return_value, "db_cache_mode", (long)info.db_cache_mode);
+    */
 }
 
 /*
