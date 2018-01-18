@@ -3867,13 +3867,19 @@ PHP_FUNCTION(mdbm_get_window_stats) {
 }
 
 PHP_FUNCTION(mdbm_get_db_stats) {
-
+/*
     zval *mdbm_link_index = NULL;
     php_mdbm_open *mdbm_link = NULL;
 
     mdbm_db_info_t info = {0x00,};
     mdbm_stat_info_t stats = {0x00,};
     _ZEND_LONG flags = -1;
+
+    char *pretval = NULL;
+    size_t retval_len = -1;
+
+    zval *elem_dbinfo = NULL;
+    zval *elem_statsinfo = NULL;
 
     int id = -1;
     int rv = -1;
@@ -3901,25 +3907,34 @@ PHP_FUNCTION(mdbm_get_db_stats) {
         RETURN_FALSE;
     }
 
+    retval_len = strlen(info.db_hash_funcname);
+    pretval = copy_strptr((char *)info.db_hash_funcname, retval_len);
+
+
     array_init(return_value);
     add_assoc_zval(zval* pzval, const char* key, zval* value)
 
     //mdbm_db_info_t
-    /*
-    add_assoc_long(return_value, "db_page_size", (long)info.db_page_size);
-    add_assoc_long(return_value, "db_num_pages", (long)info.db_num_pages);
-    add_assoc_long(return_value, "db_max_pages", (long)info.db_max_pages);
-    add_assoc_long(return_value, "db_num_dir_pages", (long)info.db_num_dir_pages);
-    add_assoc_long(return_value, "db_dir_width", (long)info.db_dir_width);
-    add_assoc_long(return_value, "db_max_dir_shift", (long)info.db_max_dir_shift);
-    add_assoc_long(return_value, "db_dir_min_level", (long)info.db_dir_min_level);
-    add_assoc_long(return_value, "db_dir_max_level", (long)info.db_dir_max_level);
-    add_assoc_long(return_value, "db_dir_num_nodes", (long)info.db_dir_num_nodes);
-    add_assoc_long(return_value, "db_hash_func", (long)info.db_hash_func);
-    _ADD_ASSOC_STRINGL(return_value, "db_hash_funcname", pretval, retval_len, 0);
-    add_assoc_long(return_value, "db_spill_size", (long)info.db_spill_size);
-    add_assoc_long(return_value, "db_cache_mode", (long)info.db_cache_mode);
-    */
+    MAKE_STD_ZVAL(elem_dbinfo);
+    array_init(elem_dbinfo);
+
+    add_assoc_long(elem_dbinfo, "db_page_size", (long)info.db_page_size);
+    add_assoc_long(elem_dbinfo, "db_num_pages", (long)info.db_num_pages);
+    add_assoc_long(elem_dbinfo, "db_max_pages", (long)info.db_max_pages);
+    add_assoc_long(elem_dbinfo, "db_num_dir_pages", (long)info.db_num_dir_pages);
+    add_assoc_long(elem_dbinfo, "db_dir_width", (long)info.db_dir_width);
+    add_assoc_long(elem_dbinfo, "db_max_dir_shift", (long)info.db_max_dir_shift);
+    add_assoc_long(elem_dbinfo, "db_dir_min_level", (long)info.db_dir_min_level);
+    add_assoc_long(elem_dbinfo, "db_dir_max_level", (long)info.db_dir_max_level);
+    add_assoc_long(elem_dbinfo, "db_dir_num_nodes", (long)info.db_dir_num_nodes);
+    add_assoc_long(elem_dbinfo, "db_hash_func", (long)info.db_hash_func);
+    _ADD_ASSOC_STRINGL(elem_dbinfo, "db_hash_funcname", pretval, retval_len, 0);
+    add_assoc_long(elem_dbinfo, "db_spill_size", (long)info.db_spill_size);
+    add_assoc_long(elem_dbinfo, "db_cache_mode", (long)info.db_cache_mode);
+
+    add_assoc_zval(return_value, "dbinfo", elem_dbinfo);
+*/
+    RETURN_FALSE;
 }
 
 /*
