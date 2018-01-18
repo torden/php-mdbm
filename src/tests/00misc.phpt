@@ -54,6 +54,7 @@ for($i=0;$i<=4096;$i++) {
     CHECK_FALSE($rv);
 }
 
+
 $rv = mdbm_sync($db);
 CHECK_FALSE($rv);
 
@@ -62,6 +63,7 @@ CHECK_FALSE($rv);
 
 $db2 = mdbm_open(TEST_MDBM, MDBM_O_RDWR, 0666, 0,0);
 CHECK_FALSE($db2);
+
 
 $rv = mdbm_enable_stat_operations($db2, MDBM_STATS_BASIC | MDBM_STATS_TIMED);
 CHECK_FALSE($db2);

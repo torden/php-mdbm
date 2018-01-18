@@ -179,6 +179,8 @@ PHP_FUNCTION(mdbm_stat_all_page);
 PHP_FUNCTION(mdbm_dump_all_page);
 PHP_FUNCTION(mdbm_dump_page);
 
+PHP_FUNCTION(mdbm_get_stats);
+
 
 /* 
   	Declare any global variables you may need between the BEGIN

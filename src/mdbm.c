@@ -46,7 +46,7 @@
 typedef struct _php_mdbm_open {
     MDBM *pmdbm;
     MDBM_ITER iter;
-	int enable_stat; //fix : reset_stat_op before enable_stat_op
+    int enable_stat; //fix : reset_stat_op before enable_stat_op
 } php_mdbm_open;
 
 static int le_link, loglevel, dev_null, org_stdout, org_stderr;
@@ -245,13 +245,13 @@ static inline int iter_handler(php_mdbm_open *mdbm_link, MDBM_ITER **piter,  zva
         TSRMLS_FETCH();
         hash_arr = HASH_OF(arr);
         if ( hash_arr == NULL || zend_hash_num_elements(hash_arr) < 2 ) {
-			php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a not valid parameter: iter");
+            php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a not valid parameter: iter");
             return -1;
         }
 
 #if PHP_VERSION_ID < 70000
         if (zend_hash_find(hash_arr, HASHKEY_PAGENO, strlen(HASHKEY_PAGENO) + 1, (void **) &item) == FAILURE) {
-			php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_PAGENO);
+            php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_PAGENO);
             return -2;
         } else {
             convert_to_long_ex(item);
@@ -259,7 +259,7 @@ static inline int iter_handler(php_mdbm_open *mdbm_link, MDBM_ITER **piter,  zva
         }
 
         if (zend_hash_find(hash_arr, HASHKEY_NEXT, strlen(HASHKEY_NEXT) + 1, (void **) &item) == FAILURE) {
-			php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_NEXT);
+            php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_NEXT);
             return -2;
         } else {
             convert_to_long_ex(item);
@@ -282,7 +282,7 @@ static inline int iter_handler(php_mdbm_open *mdbm_link, MDBM_ITER **piter,  zva
             }    
 
         } else {
-			php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_PAGENO);
+            php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_PAGENO);
             return -2;
         }
 
@@ -302,7 +302,7 @@ static inline int iter_handler(php_mdbm_open *mdbm_link, MDBM_ITER **piter,  zva
             }    
 
         } else {
-			php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_NEXT);
+            php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_NEXT);
             return -2;
         }
 #endif
@@ -314,7 +314,7 @@ static inline int iter_handler(php_mdbm_open *mdbm_link, MDBM_ITER **piter,  zva
     } else { //global-iter
         (*piter) = &(*mdbm_link).iter;
         return 2;
-	}
+    }
 
     return 0;
 }
@@ -489,7 +489,7 @@ const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_set_hash,               arginfo_mdbm_pmdbm_flags)
     PHP_FE(mdbm_get_hash,               arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_get_limit_size,         arginfo_mdbm_pmdbm)
-    PHP_FE(mdbm_setspillsize,         	arginfo_mdbm_pmdbm_size)
+    PHP_FE(mdbm_setspillsize,             arginfo_mdbm_pmdbm_size)
     PHP_FE(mdbm_get_alignment,          arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_set_alignment,          arginfo_mdbm_pmdbm_align)
     PHP_FE(mdbm_compress_tree,          arginfo_mdbm_pmdbm)
@@ -536,7 +536,7 @@ const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_get_hash_value,         arginfo_mdbm_pmdbm_flags)
     PHP_FE(mdbm_get_page,               arginfo_mdbm_key)
     PHP_FE(mdbm_get_magic_number,       arginfo_mdbm_pmdbm)
-    PHP_FE(mdbm_set_window_size,       	arginfo_mdbm_pmdbm_wsize)
+    PHP_FE(mdbm_set_window_size,        arginfo_mdbm_pmdbm_wsize)
 
     PHP_FE(mdbm_enable_stat_operations, arginfo_mdbm_pmdbm_flags)
     PHP_FE(mdbm_reset_stat_operations,  arginfo_mdbm_pmdbm)
@@ -544,10 +544,11 @@ const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_get_stat_time,          arginfo_mdbm_pmdbm_type)
     PHP_FE(mdbm_get_stat_counter,       arginfo_mdbm_pmdbm_type)
 
-	PHP_FE(mdbm_stat_all_page,			arginfo_mdbm_pmdbm)
-	PHP_FE(mdbm_dump_all_page,			arginfo_mdbm_pmdbm)
-	PHP_FE(mdbm_dump_page,				arginfo_mdbm_pmdbm_pno)	
+    PHP_FE(mdbm_stat_all_page,          arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_dump_all_page,          arginfo_mdbm_pmdbm)
+    PHP_FE(mdbm_dump_page,              arginfo_mdbm_pmdbm_pno)    
 
+    PHP_FE(mdbm_get_stats,              arginfo_mdbm_pmdbm)
     PHP_FE_END
 };
  
@@ -604,7 +605,7 @@ static void php_mdbm_init_globals(zend_mdbm_globals *mdbm_globals)
 */
 /* }}} */
 
-#define REGISTER_MDBM_CONSTANT(__c) REGISTER_LONG_CONSTANT(#__c, __c, CONST_CS | CONST_PERSISTENT)
+#define REGISTER_MDBM_LONG_CONSTANT(__c) REGISTER_LONG_CONSTANT(#__c, __c, CONST_CS | CONST_PERSISTENT)
 #define REGISTER_MDBM_STRING_CONSTANT(__c) REGISTER_STRING_CONSTANT(#__c, __c, CONST_CS | CONST_PERSISTENT)
 
 ZEND_MODULE_STARTUP_D(mdbm)
@@ -613,175 +614,174 @@ ZEND_MODULE_STARTUP_D(mdbm)
     //REGISTER_INI_ENTRIES();
     le_link = zend_register_list_destructors_ex(_close_mdbm_link, NULL, LE_MDBM_NAME, module_number);
 
-    REGISTER_MDBM_CONSTANT(MDBM_LOG_OFF);
-    REGISTER_MDBM_CONSTANT(MDBM_LOG_EMERGENCY);
-    REGISTER_MDBM_CONSTANT(MDBM_LOG_ALERT);
-    REGISTER_MDBM_CONSTANT(MDBM_LOG_CRITICAL);
-    REGISTER_MDBM_CONSTANT(MDBM_LOG_ERROR);
-    REGISTER_MDBM_CONSTANT(MDBM_LOG_WARNING);
-    REGISTER_MDBM_CONSTANT(MDBM_LOG_NOTICE);
-    REGISTER_MDBM_CONSTANT(MDBM_LOG_INFO);
-    REGISTER_MDBM_CONSTANT(MDBM_LOG_DEBUG);
-    REGISTER_MDBM_CONSTANT(MDBM_LOG_DEBUG2);
-    REGISTER_MDBM_CONSTANT(MDBM_LOG_DEBUG3);
-    REGISTER_MDBM_CONSTANT(MDBM_LOG_MAXLEVEL);
-    REGISTER_MDBM_CONSTANT(MDBM_LOG_ABORT);
-    REGISTER_MDBM_CONSTANT(MDBM_LOG_FATAL);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LOG_OFF);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LOG_EMERGENCY);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LOG_ALERT);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LOG_CRITICAL);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LOG_ERROR);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LOG_WARNING);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LOG_NOTICE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LOG_INFO);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LOG_DEBUG);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LOG_DEBUG2);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LOG_DEBUG3);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LOG_MAXLEVEL);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LOG_ABORT);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LOG_FATAL);
 
 
-    REGISTER_MDBM_CONSTANT(MDBM_KEYLEN_MAX);
-    REGISTER_MDBM_CONSTANT(MDBM_VALLEN_MAX);
-    REGISTER_MDBM_CONSTANT(MDBM_LOC_NORMAL);
-    REGISTER_MDBM_CONSTANT(MDBM_LOC_ARENA);
-    REGISTER_MDBM_CONSTANT(MDBM_O_RDONLY);
-    REGISTER_MDBM_CONSTANT(MDBM_O_WRONLY);
-    REGISTER_MDBM_CONSTANT(MDBM_O_RDWR);
-    REGISTER_MDBM_CONSTANT(MDBM_O_ACCMODE);
-    REGISTER_MDBM_CONSTANT(MDBM_O_CREAT);
-    REGISTER_MDBM_CONSTANT(MDBM_O_TRUNC);
-    REGISTER_MDBM_CONSTANT(MDBM_O_FSYNC);
-    REGISTER_MDBM_CONSTANT(MDBM_O_ASYNC);
-    REGISTER_MDBM_CONSTANT(MDBM_O_DIRECT);
-    REGISTER_MDBM_CONSTANT(MDBM_NO_DIRTY);
-    REGISTER_MDBM_CONSTANT(MDBM_SINGLE_ARCH);
-    REGISTER_MDBM_CONSTANT(MDBM_OPEN_WINDOWED);
-    REGISTER_MDBM_CONSTANT(MDBM_PROTECT);
-    REGISTER_MDBM_CONSTANT(MDBM_DBSIZE_MB);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_OPERATIONS);
-    REGISTER_MDBM_CONSTANT(MDBM_LARGE_OBJECTS);
-    REGISTER_MDBM_CONSTANT(MDBM_PARTITIONED_LOCKS);
-    REGISTER_MDBM_CONSTANT(MDBM_RW_LOCKS);
-    REGISTER_MDBM_CONSTANT(MDBM_ANY_LOCKS);
-    REGISTER_MDBM_CONSTANT(MDBM_CREATE_V3);
-    REGISTER_MDBM_CONSTANT(MDBM_OPEN_NOLOCK);
-    REGISTER_MDBM_CONSTANT(MDBM_DEMAND_PAGING);
-    REGISTER_MDBM_CONSTANT(MDBM_DBSIZE_MB_OLD);
-    REGISTER_MDBM_CONSTANT(MDBM_COPY_LOCK_ALL);
-    REGISTER_MDBM_CONSTANT(MDBM_SAVE_COMPRESS_TREE);
-    REGISTER_MDBM_CONSTANT(MDBM_ALIGN_8_BITS);
-    REGISTER_MDBM_CONSTANT(MDBM_ALIGN_16_BITS);
-    REGISTER_MDBM_CONSTANT(MDBM_ALIGN_32_BITS);
-    REGISTER_MDBM_CONSTANT(MDBM_ALIGN_64_BITS);
-    REGISTER_MDBM_CONSTANT(MDBM_MAGIC);
-    REGISTER_MDBM_CONSTANT(MDBM_FETCH_FLAG_DIRTY);
-    REGISTER_MDBM_CONSTANT(MDBM_INSERT);
-    REGISTER_MDBM_CONSTANT(MDBM_REPLACE);
-    REGISTER_MDBM_CONSTANT(MDBM_INSERT_DUP);
-    REGISTER_MDBM_CONSTANT(MDBM_MODIFY);
-    REGISTER_MDBM_CONSTANT(MDBM_STORE_MASK);
-    REGISTER_MDBM_CONSTANT(MDBM_RESERVE);
-    REGISTER_MDBM_CONSTANT(MDBM_CLEAN);
-    REGISTER_MDBM_CONSTANT(MDBM_CACHE_ONLY);
-    REGISTER_MDBM_CONSTANT(MDBM_CACHE_REPLACE);
-    REGISTER_MDBM_CONSTANT(MDBM_CACHE_MODIFY);
-    REGISTER_MDBM_CONSTANT(MDBM_STORE_SUCCESS);
-    REGISTER_MDBM_CONSTANT(MDBM_STORE_ENTRY_EXISTS);
-    REGISTER_MDBM_CONSTANT(MDBM_ENTRY_DELETED);
-    REGISTER_MDBM_CONSTANT(MDBM_ENTRY_LARGE_OBJECT);
-    REGISTER_MDBM_CONSTANT(MDBM_ITERATE_ENTRIES);
-    REGISTER_MDBM_CONSTANT(MDBM_ITERATE_NOLOCK);
-    REGISTER_MDBM_CONSTANT(MDBM_LOCKMODE_UNKNOWN);
-    REGISTER_MDBM_CONSTANT(MDBM_CHECK_HEADER);
-    REGISTER_MDBM_CONSTANT(MDBM_CHECK_CHUNKS);
-    REGISTER_MDBM_CONSTANT(MDBM_CHECK_DIRECTORY);
-    REGISTER_MDBM_CONSTANT(MDBM_CHECK_ALL);
-    REGISTER_MDBM_CONSTANT(MDBM_PROT_NONE);
-    REGISTER_MDBM_CONSTANT(MDBM_PROT_READ);
-    REGISTER_MDBM_CONSTANT(MDBM_PROT_WRITE);
-    REGISTER_MDBM_CONSTANT(MDBM_PROT_NOACCESS);
-    REGISTER_MDBM_CONSTANT(MDBM_PROT_ACCESS);
-    REGISTER_MDBM_CONSTANT(MDBM_CLOCK_STANDARD);
-    REGISTER_MDBM_CONSTANT(MDBM_CLOCK_TSC);
-    REGISTER_MDBM_CONSTANT(MDBM_STATS_BASIC);
-    REGISTER_MDBM_CONSTANT(MDBM_STATS_TIMED);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_CB_INC);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_CB_SET);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_CB_ELAPSED);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_CB_TIME);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_FETCH);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_STORE);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_DELETE);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_LOCK);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_FETCH_UNCACHED);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_GETPAGE);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_GETPAGE_UNCACHED);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_CACHE_EVICT);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_CACHE_STORE);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_PAGE_STORE);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_PAGE_DELETE);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_SYNC);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_FETCH_NOT_FOUND);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_FETCH_ERROR);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_STORE_ERROR);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_DELETE_FAILED);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_FETCH_LATENCY);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_STORE_LATENCY);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_DELETE_LATENCY);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_FETCH_TIME);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_STORE_TIME);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_DELETE_TIME);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_FETCH_UNCACHED_LATENCY);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_GETPAGE_LATENCY);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_GETPAGE_UNCACHED_LATENCY);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_CACHE_EVICT_LATENCY);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_CACHE_STORE_LATENCY);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_PAGE_STORE_VALUE);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_PAGE_DELETE_VALUE);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TAG_SYNC_LATENCY);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_DELETED);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_KEYS);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_VALUES);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_PAGES_ONLY);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_NOLOCK);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_BUCKETS);
-    REGISTER_MDBM_CONSTANT(MDBM_CACHEMODE_NONE);
-    REGISTER_MDBM_CONSTANT(MDBM_CACHEMODE_LFU);
-    REGISTER_MDBM_CONSTANT(MDBM_CACHEMODE_LRU);
-    REGISTER_MDBM_CONSTANT(MDBM_CACHEMODE_GDSF);
-    REGISTER_MDBM_CONSTANT(MDBM_CACHEMODE_MAX);
-    REGISTER_MDBM_CONSTANT(MDBM_CACHEMODE_EVICT_CLEAN_FIRST);
-    REGISTER_MDBM_CONSTANT(MDBM_CACHEMODE_BITS);
-    REGISTER_MDBM_CONSTANT(MDBM_MINPAGE);
-    REGISTER_MDBM_CONSTANT(MDBM_PAGE_ALIGN);
-    REGISTER_MDBM_CONSTANT(MDBM_MAXPAGE);
-    REGISTER_MDBM_CONSTANT(MDBM_PAGESIZ);
-    REGISTER_MDBM_CONSTANT(MDBM_MIN_PSHIFT);
-    REGISTER_MDBM_CONSTANT(MDBM_MAX_SHIFT);
-    REGISTER_MDBM_CONSTANT(MDBM_HASH_CRC32);
-    REGISTER_MDBM_CONSTANT(MDBM_HASH_EJB);
-    REGISTER_MDBM_CONSTANT(MDBM_HASH_PHONG);
-    REGISTER_MDBM_CONSTANT(MDBM_HASH_OZ);
-    REGISTER_MDBM_CONSTANT(MDBM_HASH_TOREK);
-    REGISTER_MDBM_CONSTANT(MDBM_HASH_FNV);
-    REGISTER_MDBM_CONSTANT(MDBM_HASH_STL);
-    REGISTER_MDBM_CONSTANT(MDBM_HASH_MD5);
-    REGISTER_MDBM_CONSTANT(MDBM_HASH_SHA_1);
-    REGISTER_MDBM_CONSTANT(MDBM_HASH_JENKINS);
-    REGISTER_MDBM_CONSTANT(MDBM_HASH_HSIEH);
-    REGISTER_MDBM_CONSTANT(MDBM_MAX_HASH);
-    REGISTER_MDBM_CONSTANT(MDBM_CONFIG_DEFAULT_HASH);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_KEYLEN_MAX);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_VALLEN_MAX);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LOC_NORMAL);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LOC_ARENA);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_O_RDONLY);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_O_WRONLY);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_O_RDWR);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_O_ACCMODE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_O_CREAT);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_O_TRUNC);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_O_FSYNC);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_O_ASYNC);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_O_DIRECT);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_NO_DIRTY);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_SINGLE_ARCH);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_OPEN_WINDOWED);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_PROTECT);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_DBSIZE_MB);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_OPERATIONS);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LARGE_OBJECTS);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_PARTITIONED_LOCKS);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_RW_LOCKS);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_ANY_LOCKS);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_CREATE_V3);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_OPEN_NOLOCK);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_DEMAND_PAGING);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_DBSIZE_MB_OLD);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_COPY_LOCK_ALL);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_SAVE_COMPRESS_TREE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_ALIGN_8_BITS);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_ALIGN_16_BITS);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_ALIGN_32_BITS);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_ALIGN_64_BITS);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_MAGIC);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_FETCH_FLAG_DIRTY);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_INSERT);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_REPLACE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_INSERT_DUP);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_MODIFY);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STORE_MASK);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_RESERVE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_CLEAN);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_CACHE_ONLY);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_CACHE_REPLACE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_CACHE_MODIFY);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STORE_SUCCESS);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STORE_ENTRY_EXISTS);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_ENTRY_DELETED);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_ENTRY_LARGE_OBJECT);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_ITERATE_ENTRIES);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_ITERATE_NOLOCK);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LOCKMODE_UNKNOWN);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_CHECK_HEADER);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_CHECK_CHUNKS);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_CHECK_DIRECTORY);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_CHECK_ALL);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_PROT_NONE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_PROT_READ);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_PROT_WRITE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_PROT_NOACCESS);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_PROT_ACCESS);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_CLOCK_STANDARD);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_CLOCK_TSC);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STATS_BASIC);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STATS_TIMED);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_CB_INC);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_CB_SET);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_CB_ELAPSED);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_CB_TIME);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_FETCH);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_STORE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_DELETE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_LOCK);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_FETCH_UNCACHED);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_GETPAGE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_GETPAGE_UNCACHED);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_CACHE_EVICT);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_CACHE_STORE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_PAGE_STORE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_PAGE_DELETE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_SYNC);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_FETCH_NOT_FOUND);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_FETCH_ERROR);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_STORE_ERROR);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_DELETE_FAILED);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_FETCH_LATENCY);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_STORE_LATENCY);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_DELETE_LATENCY);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_FETCH_TIME);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_STORE_TIME);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_DELETE_TIME);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_FETCH_UNCACHED_LATENCY);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_GETPAGE_LATENCY);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_GETPAGE_UNCACHED_LATENCY);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_CACHE_EVICT_LATENCY);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_CACHE_STORE_LATENCY);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_PAGE_STORE_VALUE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_PAGE_DELETE_VALUE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TAG_SYNC_LATENCY);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_DELETED);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_KEYS);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_VALUES);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_PAGES_ONLY);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_NOLOCK);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_BUCKETS);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_CACHEMODE_NONE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_CACHEMODE_LFU);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_CACHEMODE_LRU);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_CACHEMODE_GDSF);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_CACHEMODE_MAX);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_CACHEMODE_EVICT_CLEAN_FIRST);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_CACHEMODE_BITS);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_MINPAGE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_PAGE_ALIGN);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_MAXPAGE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_PAGESIZ);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_MIN_PSHIFT);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_MAX_SHIFT);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_HASH_CRC32);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_HASH_EJB);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_HASH_PHONG);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_HASH_OZ);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_HASH_TOREK);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_HASH_FNV);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_HASH_STL);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_HASH_MD5);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_HASH_SHA_1);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_HASH_JENKINS);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_HASH_HSIEH);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_MAX_HASH);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_CONFIG_DEFAULT_HASH);
 
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TYPE_FETCH);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TYPE_STORE);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TYPE_DELETE);
-    REGISTER_MDBM_CONSTANT(MDBM_STAT_TYPE_MAX);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TYPE_FETCH);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TYPE_STORE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TYPE_DELETE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_STAT_TYPE_MAX);
 
-    REGISTER_MDBM_CONSTANT(MDBM_PTYPE_FREE);
-    REGISTER_MDBM_CONSTANT(MDBM_PTYPE_DATA);
-    REGISTER_MDBM_CONSTANT(MDBM_PTYPE_DIR);
-    REGISTER_MDBM_CONSTANT(MDBM_PTYPE_LOB);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_PTYPE_FREE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_PTYPE_DATA);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_PTYPE_DIR);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_PTYPE_LOB);
 
-/*
-    REGISTER_MDBM_CONSTANT(MDBM_LOG_TO_STDERR);
-    REGISTER_MDBM_CONSTANT(MDBM_LOG_TO_FILE);
-    REGISTER_MDBM_CONSTANT(MDBM_LOG_TO_SYSLOG);
-*/
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LOG_TO_STDERR);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LOG_TO_FILE);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_LOG_TO_SYSLOG);
+
     REGISTER_MDBM_STRING_CONSTANT(HASHKEY_FLAGS);
     REGISTER_MDBM_STRING_CONSTANT(HASHKEY_CACHE_NUM_ACCESSES);
     REGISTER_MDBM_STRING_CONSTANT(HASHKEY_CACHE_ACCESS_TIME);
 
     REGISTER_MDBM_STRING_CONSTANT(PHP_MDBM_VERSION);
-    REGISTER_MDBM_CONSTANT(MDBM_API_VERSION);
+    REGISTER_MDBM_LONG_CONSTANT(MDBM_API_VERSION);
 
     return SUCCESS;
 }
@@ -869,27 +869,27 @@ PHP_FUNCTION(mdbm_open) {
         RETURN_FALSE;
     }
 
-	//protect : sigfault
-	if (flags == (flags | MDBM_O_CREAT) && flags == (flags | MDBM_PROTECT)) {
-	    php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to open the MDBM, not support create flags with MDBM_PROTECT");
+    //protect : sigfault
+    if (flags == (flags | MDBM_O_CREAT) && flags == (flags | MDBM_PROTECT)) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to open the MDBM, not support create flags with MDBM_PROTECT");
         RETURN_FALSE;
-	}
+    }
 
-	if (flags == (flags | MDBM_O_ASYNC) && flags == (flags | MDBM_O_FSYNC)) {
-	    php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to open the MDBM, not support mixed sync flags (MDBM_O_FSYNC, MDBM_O_ASYNC)");
+    if (flags == (flags | MDBM_O_ASYNC) && flags == (flags | MDBM_O_FSYNC)) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to open the MDBM, not support mixed sync flags (MDBM_O_FSYNC, MDBM_O_ASYNC)");
         RETURN_FALSE;
-	}
+    }
 
-	if (flags == (flags | MDBM_O_RDONLY) && flags == (flags | MDBM_O_WRONLY)) {
-	    php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to open the MDBM, not support mixed access flags (MDBM_O_RDONLY, MDBM_O_WRONLY, MDBM_O_RDWR)");
+    if (flags == (flags | MDBM_O_RDONLY) && flags == (flags | MDBM_O_WRONLY)) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to open the MDBM, not support mixed access flags (MDBM_O_RDONLY, MDBM_O_WRONLY, MDBM_O_RDWR)");
         RETURN_FALSE;
-	}
+    }
 
-	//check the overlow
-	CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
-	CHECK_OVERFLOW(mode, INT_MIN, INT_MAX);
-	CHECK_OVERFLOW(psize, INT_MIN, INT_MAX);
-	CHECK_OVERFLOW(presize, INT_MIN, INT_MAX);
+    //check the overlow
+    CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
+    CHECK_OVERFLOW(mode, INT_MIN, INT_MAX);
+    CHECK_OVERFLOW(psize, INT_MIN, INT_MAX);
+    CHECK_OVERFLOW(presize, INT_MIN, INT_MAX);
 
     //create the link
     mdbm_link = (php_mdbm_open *) ecalloc(1, sizeof(php_mdbm_open));
@@ -911,10 +911,10 @@ PHP_FUNCTION(mdbm_open) {
         RETURN_FALSE;
     }
 
-	mdbm_link->pmdbm = pmdbm;
+    mdbm_link->pmdbm = pmdbm;
 
-	MDBM_ITER_INIT(&(*mdbm_link).iter);
-	mdbm_link->enable_stat = 0; 
+    MDBM_ITER_INIT(&(*mdbm_link).iter);
+    mdbm_link->enable_stat = 0; 
     
 #if PHP_VERSION_ID < 70000
     ZEND_REGISTER_RESOURCE(return_value, mdbm_link, le_link);
@@ -1011,7 +1011,7 @@ PHP_FUNCTION(mdbm_close_fd) {
     //fetch the resource
     _FETCH_RES(mdbm_link_index, id);
 
-	mdbm_close_fd(mdbm_link->pmdbm);
+    mdbm_close_fd(mdbm_link->pmdbm);
 
     if (mdbm_link_index) {
 
@@ -1081,7 +1081,7 @@ PHP_FUNCTION(mdbm_replace_db) {
     }
 
     //check the length
-	CHECK_EMPTY_STR_NAME("file", newfile_len);
+    CHECK_EMPTY_STR_NAME("file", newfile_len);
 
     //fetch the resource
     _FETCH_RES(mdbm_link_index, id);
@@ -1112,8 +1112,8 @@ PHP_FUNCTION(mdbm_replace_file) {
     }
 
     //check the length
-	CHECK_EMPTY_STR_NAME("oldfile", oldfile_len);
-	CHECK_EMPTY_STR_NAME("newfile", newfile_len);
+    CHECK_EMPTY_STR_NAME("oldfile", oldfile_len);
+    CHECK_EMPTY_STR_NAME("newfile", newfile_len);
 
     _CAPTURE_START();
     rv = mdbm_replace_file((const char*)poldfile, (const char *)pnewfile);
@@ -1171,8 +1171,8 @@ PHP_FUNCTION(mdbm_fcopy) {
         RETURN_FALSE;
     }
 
-	//check the length
-	CHECK_EMPTY_STR_NAME("newfile", newfile_len);
+    //check the length
+    CHECK_EMPTY_STR_NAME("newfile", newfile_len);
 
     //check the overlow
     CHECK_OVERFLOW(mode, 0, UINT_MAX);
@@ -1347,10 +1347,10 @@ PHP_FUNCTION(mdbm_plock) {
     }
 
     //check the length
-	CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", key_len);
 
-	//check the overlow
-	CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
+    //check the overlow
+    CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
 
     //fetch the resource
     _FETCH_RES(mdbm_link_index, id);
@@ -1387,10 +1387,10 @@ PHP_FUNCTION(mdbm_tryplock) {
     }
 
     //check the length
-	CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", key_len);
 
-	//check the overlow
-	CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
+    //check the overlow
+    CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
 
     //fetch the resource
     _FETCH_RES(mdbm_link_index, id);
@@ -1477,10 +1477,10 @@ PHP_FUNCTION(mdbm_lock_smart) {
     }
 
     //check the length
-	CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", key_len);
 
-	//check the overlow
-	CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
+    //check the overlow
+    CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
 
     //fetch the resource
     _FETCH_RES(mdbm_link_index, id);
@@ -1517,10 +1517,10 @@ PHP_FUNCTION(mdbm_trylock_smart) {
     }
 
     //check the length
-	CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", key_len);
 
-	//check the overlow
-	CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
+    //check the overlow
+    CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
 
     //fetch the resource
     _FETCH_RES(mdbm_link_index, id);
@@ -1582,10 +1582,10 @@ PHP_FUNCTION(mdbm_punlock) {
     }
 
     //check the length
-	CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", key_len);
 
-	//check the overlow
-	CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
+    //check the overlow
+    CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
 
     //fetch the resource
     _FETCH_RES(mdbm_link_index, id);
@@ -1622,10 +1622,10 @@ PHP_FUNCTION(mdbm_unlock_smart) {
     }
 
     //check the length
-	CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", key_len);
 
-	//check the overlow
-	CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
+    //check the overlow
+    CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
 
     //fetch the resource
     _FETCH_RES(mdbm_link_index, id);
@@ -1719,7 +1719,7 @@ PHP_FUNCTION(mdbm_lock_reset) {
     }
 
     //check the length
-	CHECK_EMPTY_STR_NAME("mdbm file path", dbfn_len);
+    CHECK_EMPTY_STR_NAME("mdbm file path", dbfn_len);
 
     strncpy(fn, pdbfn, dbfn_len);
     if (fn == NULL) {
@@ -1730,7 +1730,7 @@ PHP_FUNCTION(mdbm_lock_reset) {
 
     //flags Reserved for future use, and must be 0.
     _CAPTURE_START();
-	rv = mdbm_lock_reset((const char *)&fn, 0);
+    rv = mdbm_lock_reset((const char *)&fn, 0);
     _CAPTURE_END();
     if (rv == -1) {
         RETURN_FALSE;
@@ -1757,7 +1757,7 @@ PHP_FUNCTION(mdbm_delete_lockfiles) {
     }
 
     //check the length
-	CHECK_EMPTY_STR_NAME("mdbm file path", dbfn_len);
+    CHECK_EMPTY_STR_NAME("mdbm file path", dbfn_len);
 
     strncpy(fn, pdbfn, dbfn_len);
     if (fn == NULL) {
@@ -1950,8 +1950,8 @@ PHP_FUNCTION(mdbm_set_hash) {
         RETURN_FALSE;
     }
 
-	//check the overlow
-	CHECK_OVERFLOW(hash, INT_MIN, INT_MAX);
+    //check the overlow
+    CHECK_OVERFLOW(hash, INT_MIN, INT_MAX);
 
     //fetch the resource
     _FETCH_RES(mdbm_link_index, id);
@@ -2123,9 +2123,9 @@ PHP_FUNCTION(mdbm_store) {
         RETURN_FALSE;
     }
 
-	//check the length
-	CHECK_EMPTY_STR_NAME("key", key_len);
-	CHECK_EMPTY_STR_NAME("val", val_len);
+    //check the length
+    CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("val", val_len);
 
     //check the length of key
     _CHECK_MDBM_STR_MAXLEN(key_len);
@@ -2164,10 +2164,10 @@ PHP_FUNCTION(mdbm_store) {
         RETURN_FALSE;
     }
 
-	if (rv == 1 && flags == (flags | MDBM_INSERT)) { //the key already exists
-		php_error_docref(NULL TSRMLS_CC, E_ERROR, "the key(=%s) already exists", pkey);
+    if (rv == 1 && flags == (flags | MDBM_INSERT)) { //the key already exists
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "the key(=%s) already exists", pkey);
         RETURN_FALSE;
-	}
+    }
 
     RETURN_TRUE;
 }
@@ -2197,9 +2197,9 @@ PHP_FUNCTION(mdbm_store_r) {
         RETURN_FALSE;
     }
 
-	//check the length
-	CHECK_EMPTY_STR_NAME("key", key_len);
-	CHECK_EMPTY_STR_NAME("val", val_len);
+    //check the length
+    CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("val", val_len);
 
     //check the length of key
     _CHECK_MDBM_STR_MAXLEN(key_len);
@@ -2238,10 +2238,10 @@ PHP_FUNCTION(mdbm_store_r) {
         RETURN_FALSE;
     }
 
-	if (rv == 1 && flags == (flags | MDBM_INSERT)) { //the key already exists
-		php_error_docref(NULL TSRMLS_CC, E_ERROR, "the key(=%s) already exists", pkey);
+    if (rv == 1 && flags == (flags | MDBM_INSERT)) { //the key already exists
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "the key(=%s) already exists", pkey);
         RETURN_FALSE;
-	}
+    }
 
     array_init(return_value);
     add_assoc_long(return_value, HASHKEY_PAGENO, parg_iter->m_pageno);
@@ -2267,8 +2267,8 @@ PHP_FUNCTION(mdbm_fetch) {
         RETURN_FALSE;
     }
 
-	//check the length
-	CHECK_EMPTY_STR_NAME("key", key_len);
+    //check the length
+    CHECK_EMPTY_STR_NAME("key", key_len);
 
     //check the length of key
     _CHECK_MDBM_STR_MAXLEN(key_len);
@@ -2317,8 +2317,8 @@ PHP_FUNCTION(mdbm_fetch_r) {
         RETURN_FALSE;
     }
 
-	//check the length
-	CHECK_EMPTY_STR_NAME("key", key_len);
+    //check the length
+    CHECK_EMPTY_STR_NAME("key", key_len);
 
     //check the length of key
     _CHECK_MDBM_STR_MAXLEN(key_len);
@@ -2380,7 +2380,7 @@ PHP_FUNCTION(mdbm_fetch_dup_r) {
     }
 
     //check the length
-	CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", key_len);
 
     //check the length of key
     _CHECK_MDBM_STR_MAXLEN(key_len);
@@ -2444,7 +2444,7 @@ PHP_FUNCTION(mdbm_fetch_info) {
     }
 
     //check the length
-	CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", key_len);
 
     //check the length of key
     _CHECK_MDBM_STR_MAXLEN(key_len);
@@ -2505,7 +2505,7 @@ PHP_FUNCTION(mdbm_delete) {
     }
 
     //check the length
-	CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", key_len);
 
     //check the length of key
     _CHECK_MDBM_STR_MAXLEN(key_len);
@@ -2773,9 +2773,9 @@ PHP_FUNCTION(mdbm_get_iter) {
         RETURN_FALSE;
     }
 
-	//check the overlow
-	CHECK_OVERFLOW(in_pageno, 0, UINT32_MAX); //mdbm_usib_t = uint32_t
-	CHECK_OVERFLOW(in_next, INT_MIN, INT_MAX);
+    //check the overlow
+    CHECK_OVERFLOW(in_pageno, 0, UINT32_MAX); //mdbm_usib_t = uint32_t
+    CHECK_OVERFLOW(in_next, INT_MIN, INT_MAX);
 
 
     if (argc < 1) {
@@ -2860,7 +2860,7 @@ PHP_FUNCTION(mdbm_next_r) {
 
     
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|a", &mdbm_link_index, &arr) == FAILURE) {
-		php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -2964,7 +2964,7 @@ PHP_FUNCTION(mdbm_nextkey_r) {
     char *pretkey = NULL;
     
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|a", &mdbm_link_index, &arr) == FAILURE) {
-		php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3054,8 +3054,8 @@ PHP_FUNCTION(mdbm_set_cachemode) {
         RETURN_FALSE;
     }
 
-	//check the overlow
-	CHECK_OVERFLOW(flag, INT_MIN, INT_MAX);
+    //check the overlow
+    CHECK_OVERFLOW(flag, INT_MIN, INT_MAX);
 
     if (flag < MDBM_CACHEMODE_NONE || flag > MDBM_CACHEMODE_MAX) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : flag(=%ld)", flag);
@@ -3118,8 +3118,8 @@ PHP_FUNCTION(mdbm_get_cachemode_name) {
         RETURN_FALSE;
     }
 
-	//check the overlow
-	CHECK_OVERFLOW(cacheno, INT_MIN, INT_MAX);
+    //check the overlow
+    CHECK_OVERFLOW(cacheno, INT_MIN, INT_MAX);
 
     _CAPTURE_START();
     pcache_name = mdbm_get_cachemode_name((int)cacheno); //return value from stack
@@ -3151,8 +3151,8 @@ PHP_FUNCTION(mdbm_clean) {
         RETURN_FALSE;
     }
 
-	//check the overlow
-	CHECK_OVERFLOW(pagenum, INT_MIN, INT_MAX);
+    //check the overlow
+    CHECK_OVERFLOW(pagenum, INT_MIN, INT_MAX);
 
     //fetch the resource
     _FETCH_RES(mdbm_link_index, id);
@@ -3164,7 +3164,7 @@ PHP_FUNCTION(mdbm_clean) {
         RETURN_FALSE;
     }
 
-	RETURN_TRUE;
+    RETURN_TRUE;
 }
 
 PHP_FUNCTION(mdbm_check) {
@@ -3182,8 +3182,8 @@ PHP_FUNCTION(mdbm_check) {
         RETURN_FALSE;
     }
 
-	//check the overlow
-	CHECK_OVERFLOW(level, INT_MIN, INT_MAX);
+    //check the overlow
+    CHECK_OVERFLOW(level, INT_MIN, INT_MAX);
 
     if (level < MDBM_CHECK_HEADER || level > MDBM_CHECK_ALL) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : level(=%ld)", level);
@@ -3248,8 +3248,8 @@ PHP_FUNCTION(mdbm_chk_page) {
         RETURN_FALSE;
     }
 
-	//check the overlow
-	CHECK_OVERFLOW(pagenum, INT_MIN, INT_MAX);
+    //check the overlow
+    CHECK_OVERFLOW(pagenum, INT_MIN, INT_MAX);
 
     //fetch the resource
     _FETCH_RES(mdbm_link_index, id);
@@ -3278,8 +3278,8 @@ PHP_FUNCTION(mdbm_protect) {
         RETURN_FALSE;
     }
 
-	//check the overlow
-	CHECK_OVERFLOW(protect, INT_MIN, INT_MAX);
+    //check the overlow
+    CHECK_OVERFLOW(protect, INT_MIN, INT_MAX);
 
     if (protect < MDBM_PROT_NONE || protect > MDBM_PROT_ACCESS) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : protect(=%ld)", protect);
@@ -3367,10 +3367,10 @@ PHP_FUNCTION(mdbm_get_hash_value) {
     }
 
     //check the length
-	CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", key_len);
 
-	//check the overlow
-	CHECK_OVERFLOW(hfc, INT_MIN, INT_MAX);
+    //check the overlow
+    CHECK_OVERFLOW(hfc, INT_MIN, INT_MAX);
 
     if (hfc < MDBM_HASH_CRC32 || hfc > MDBM_MAX_HASH) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : hash function code(=%d)", (int)hfc);
@@ -3414,7 +3414,7 @@ PHP_FUNCTION(mdbm_get_page) {
     }
 
     //check the length
-	CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", key_len);
 
     //check the length of key
     _CHECK_MDBM_STR_MAXLEN(key_len);
@@ -3522,7 +3522,7 @@ PHP_FUNCTION(mdbm_enable_stat_operations) {
         RETURN_FALSE;
     }
 
-	mdbm_link->enable_stat = 1;
+    mdbm_link->enable_stat = 1;
 
     RETURN_TRUE;
 }
@@ -3542,10 +3542,10 @@ PHP_FUNCTION(mdbm_reset_stat_operations) {
     //fetch the resource
     _FETCH_RES(mdbm_link_index, id);
 
-	if (mdbm_link->enable_stat != 1) {
-	    php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - Required! call to mdbm_reset_stat_operations aftre mdbm_enable_stat_operations.");
+    if (mdbm_link->enable_stat != 1) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - Required! call to mdbm_reset_stat_operations aftre mdbm_enable_stat_operations.");
         RETURN_FALSE;
-	}
+    }
 
     _CAPTURE_START();
     mdbm_reset_stat_operations(mdbm_link->pmdbm);
@@ -3734,6 +3734,51 @@ PHP_FUNCTION(mdbm_dump_page) {
     _CAPTURE_END();
 
     RETURN_NULL();
+}
+
+PHP_FUNCTION(mdbm_get_stats) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    mdbm_stats_t s = {0x00,};
+    int id = -1;
+    int rv = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+        RETURN_FALSE;
+    }
+
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
+
+    _CAPTURE_START();
+    rv = mdbm_get_stats(mdbm_link->pmdbm, &s, sizeof(s));
+    _CAPTURE_END();
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    array_init(return_value);
+    add_assoc_long(return_value, "s_size", (long)s.s_size);
+    add_assoc_long(return_value, "s_page_size", (long)s.s_page_size);
+    add_assoc_long(return_value, "s_page_count", (long)s.s_page_count);
+    add_assoc_long(return_value, "s_pages_used", (long)s.s_pages_used);
+    add_assoc_long(return_value, "s_bytes_used", (long)s.s_bytes_used);
+    add_assoc_long(return_value, "s_num_entries", (long)s.s_num_entries);
+    add_assoc_long(return_value, "s_min_level", (long)s.s_min_level);
+    add_assoc_long(return_value, "s_max_level", (long)s.s_max_level);
+    add_assoc_long(return_value, "s_large_page_size", (long)s.s_large_page_size);
+    add_assoc_long(return_value, "s_large_page_count", (long)s.s_large_page_count);
+    add_assoc_long(return_value, "s_large_threshold", (long)s.s_large_threshold);
+    add_assoc_long(return_value, "s_large_pages_used", (long)s.s_large_pages_used);
+    add_assoc_long(return_value, "s_large_num_free_entries", (long)s.s_large_num_free_entries);
+    add_assoc_long(return_value, "s_large_max_free", (long)s.s_large_max_free);
+    add_assoc_long(return_value, "s_large_num_entries", (long)s.s_large_num_entries);
+    add_assoc_long(return_value, "s_large_bytes_used", (long)s.s_large_bytes_used);
+    add_assoc_long(return_value, "s_large_min_size", (long)s.s_large_min_size);
+    add_assoc_long(return_value, "s_large_max_size", (long)s.s_large_max_size);
+    add_assoc_long(return_value, "s_cache_mode", (long)s.s_cache_mode);
 }
 
 /*

@@ -9,6 +9,14 @@ define("TEST_MDBM_REPLACE2", "/tmp/test_phpt_replace2.mdbm");
 function OK() { echo "OK\n"; }
 function FAIL() { echo "FAIL\n"; (debug_backtrace()); }
 
+function CHECK_NULL($rv) {
+    if ($rv === NULL) {
+        echo "FAIL\n";
+        echo "rv : "; echo (int)$rv; echo"\n";
+        var_dump(debug_backtrace());
+    }
+}
+
 function CHECK_FALSE($rv) {
     if ($rv === false) {
         echo "FAIL\n";
