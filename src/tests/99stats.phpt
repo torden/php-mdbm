@@ -18,6 +18,9 @@ CHECK_FALSE($rv);
 $rv = mdbm_get_window_stats($db);
 CHECK_FALSE($rv);
 
+//$rv = mdbm_get_db_stats($db,MDBM_STAT_NOLOCK);
+//var_dump($rv);
+
 $rv = mdbm_close($db);
 CHECK_FALSE($rv);
 

@@ -553,7 +553,7 @@ const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_get_stats,              arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_get_db_info,            arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_get_window_stats,       arginfo_mdbm_pmdbm)
-    PHP_FE(mdbm_get_db_stats,           arginfo_mdbm_pmdbm_flags)
+    //PHP_FE(mdbm_get_db_stats,           arginfo_mdbm_pmdbm_flags)
 
     PHP_FE_END
 };
@@ -3866,8 +3866,9 @@ PHP_FUNCTION(mdbm_get_window_stats) {
     add_assoc_long(return_value, "w_max_window_used", (long)stats.w_max_window_used);
 }
 
+/* - Leak on php7
 PHP_FUNCTION(mdbm_get_db_stats) {
-/*
+
     zval *mdbm_link_index = NULL;
     php_mdbm_open *mdbm_link = NULL;
 
@@ -3878,11 +3879,30 @@ PHP_FUNCTION(mdbm_get_db_stats) {
     char *pretval = NULL;
     size_t retval_len = -1;
 
+
+#if PHP_VERSION_ID < 70000
     zval *elem_dbinfo = NULL;
     zval *elem_statsinfo = NULL;
 
+    zval *elem_buckets = NULL;
+    zval *elem_bucket = NULL;
+#else
+    zval _elem_dbinfo = {0x00,};
+    zval *elem_dbinfo = &_elem_dbinfo;
+    zval _elem_statsinfo = {0x00,};
+    zval *elem_statsinfo = &_elem_statsinfo;
+
+    zval _elem_buckets = {0x00,};
+    zval *elem_buckets = &_elem_buckets;
+    zval _elem_bucket = {0x00,};
+    zval *elem_bucket = &_elem_bucket;
+#endif
+
+    int buckets_size = 0;
+
     int id = -1;
     int rv = -1;
+    int i = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &flags) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
@@ -3907,15 +3927,18 @@ PHP_FUNCTION(mdbm_get_db_stats) {
         RETURN_FALSE;
     }
 
+
     retval_len = strlen(info.db_hash_funcname);
     pretval = copy_strptr((char *)info.db_hash_funcname, retval_len);
 
 
+    //return_value
     array_init(return_value);
-    add_assoc_zval(zval* pzval, const char* key, zval* value)
 
-    //mdbm_db_info_t
+    //return_value['dbinfo']->mdbm_db_info_t
+#if PHP_VERSION_ID < 70000
     MAKE_STD_ZVAL(elem_dbinfo);
+#endif
     array_init(elem_dbinfo);
 
     add_assoc_long(elem_dbinfo, "db_page_size", (long)info.db_page_size);
@@ -3932,10 +3955,74 @@ PHP_FUNCTION(mdbm_get_db_stats) {
     add_assoc_long(elem_dbinfo, "db_spill_size", (long)info.db_spill_size);
     add_assoc_long(elem_dbinfo, "db_cache_mode", (long)info.db_cache_mode);
 
-    add_assoc_zval(return_value, "dbinfo", elem_dbinfo);
-*/
-    RETURN_FALSE;
+    add_assoc_zval(return_value, "db", elem_dbinfo);
+
+
+    //return['statsinfo']-> mdbm_stat_info_t
+#if PHP_VERSION_ID < 70000
+    MAKE_STD_ZVAL(elem_statsinfo);
+#endif
+    array_init(elem_statsinfo);
+
+    add_assoc_long(elem_statsinfo, "flags", (long)stats.flags);
+    add_assoc_long(elem_statsinfo, "num_active_entries", (long)stats.num_active_entries);
+    add_assoc_long(elem_statsinfo, "num_active_lob_entries", (long)stats.num_active_lob_entries);
+    add_assoc_long(elem_statsinfo, "sum_key_bytes", (long)stats.sum_key_bytes);
+    add_assoc_long(elem_statsinfo, "sum_lob_val_bytes", (long)stats.sum_lob_val_bytes);
+    add_assoc_long(elem_statsinfo, "sum_normal_val_bytes", (long)stats.sum_normal_val_bytes);
+    add_assoc_long(elem_statsinfo, "sum_overhead_bytes", (long)stats.sum_overhead_bytes);
+    add_assoc_long(elem_statsinfo, "min_entry_bytes", (long)stats.min_entry_bytes);
+    add_assoc_long(elem_statsinfo, "max_entry_bytes", (long)stats.max_entry_bytes);
+    add_assoc_long(elem_statsinfo, "min_key_bytes", (long)stats.min_key_bytes);
+    add_assoc_long(elem_statsinfo, "max_key_bytes", (long)stats.max_key_bytes);
+    add_assoc_long(elem_statsinfo, "min_val_bytes", (long)stats.min_val_bytes);
+    add_assoc_long(elem_statsinfo, "max_val_bytes", (long)stats.max_val_bytes);
+    add_assoc_long(elem_statsinfo, "min_lob_bytes", (long)stats.min_lob_bytes);
+    add_assoc_long(elem_statsinfo, "max_lob_bytes", (long)stats.max_lob_bytes);
+    add_assoc_long(elem_statsinfo, "max_page_used_space", (long)stats.max_page_used_space);
+    add_assoc_long(elem_statsinfo, "max_data_pages", (long)stats.max_data_pages);
+    add_assoc_long(elem_statsinfo, "num_free_pages", (long)stats.num_free_pages);
+    add_assoc_long(elem_statsinfo, "num_active_pages", (long)stats.num_active_pages);
+    add_assoc_long(elem_statsinfo, "num_normal_pages", (long)stats.num_normal_pages);
+    add_assoc_long(elem_statsinfo, "num_oversized_pages", (long)stats.num_oversized_pages);
+    add_assoc_long(elem_statsinfo, "num_lob_pages", (long)stats.num_lob_pages);
+    add_assoc_long(elem_statsinfo, "max_page_entries", (long)stats.max_page_entries);
+    add_assoc_long(elem_statsinfo, "min_page_entries", (long)stats.min_page_entries);
+
+    add_assoc_zval(return_value, "stats", elem_statsinfo);
+
+    buckets_size = sizeof(stats.buckets)/sizeof(stats.buckets[0]);
+
+    //return_value['buckets'][i]->bucket
+#if PHP_VERSION_ID < 70000
+    MAKE_STD_ZVAL(elem_buckets);
+#endif
+    array_init(elem_buckets);
+
+
+    for (i=0; i<buckets_size; i++) { 
+
+
+#if PHP_VERSION_ID < 70000
+        MAKE_STD_ZVAL(elem_bucket);
+#endif
+        array_init(elem_bucket);
+
+        add_assoc_long(elem_bucket, "num_pages", (long)stats.buckets[i].num_pages);
+        add_assoc_long(elem_bucket, "min_bytes", (long)stats.buckets[i].min_bytes);
+        add_assoc_long(elem_bucket, "max_bytes", (long)stats.buckets[i].max_bytes);
+        add_assoc_long(elem_bucket, "min_free_bytes", (long)stats.buckets[i].min_free_bytes);
+        add_assoc_long(elem_bucket, "max_free_bytes", (long)stats.buckets[i].max_free_bytes);
+        add_assoc_long(elem_bucket, "sum_entries", (long)stats.buckets[i].sum_entries);
+        add_assoc_long(elem_bucket, "sum_bytes", (long)stats.buckets[i].sum_bytes);
+        add_assoc_long(elem_bucket, "sum_free_bytes", (long)stats.buckets[i].sum_free_bytes);
+    
+        add_index_zval(elem_buckets, i, elem_bucket);
+    }
+
+    add_assoc_zval(return_value, "buckets", elem_buckets);
 }
+*/
 
 /*
  * Local variables:
