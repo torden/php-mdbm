@@ -553,7 +553,7 @@ const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_get_stats,              arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_get_db_info,            arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_get_window_stats,       arginfo_mdbm_pmdbm)
-    //PHP_FE(mdbm_get_db_stats,           arginfo_mdbm_pmdbm_flags)
+    PHP_FE(mdbm_get_db_stats,           arginfo_mdbm_pmdbm_flags)
 
     PHP_FE_END
 };
@@ -3866,7 +3866,7 @@ PHP_FUNCTION(mdbm_get_window_stats) {
     add_assoc_long(return_value, "w_max_window_used", (long)stats.w_max_window_used);
 }
 
-/* - Leak on php7
+/* - Leak on php7 */
 PHP_FUNCTION(mdbm_get_db_stats) {
 
     zval *mdbm_link_index = NULL;
@@ -3992,7 +3992,6 @@ PHP_FUNCTION(mdbm_get_db_stats) {
     add_assoc_zval(return_value, "stats", elem_statsinfo);
 
     buckets_size = sizeof(stats.buckets)/sizeof(stats.buckets[0]);
-
     //return_value['buckets'][i]->bucket
 #if PHP_VERSION_ID < 70000
     MAKE_STD_ZVAL(elem_buckets);
@@ -4008,6 +4007,7 @@ PHP_FUNCTION(mdbm_get_db_stats) {
 #endif
         array_init(elem_bucket);
 
+
         add_assoc_long(elem_bucket, "num_pages", (long)stats.buckets[i].num_pages);
         add_assoc_long(elem_bucket, "min_bytes", (long)stats.buckets[i].min_bytes);
         add_assoc_long(elem_bucket, "max_bytes", (long)stats.buckets[i].max_bytes);
@@ -4016,13 +4016,13 @@ PHP_FUNCTION(mdbm_get_db_stats) {
         add_assoc_long(elem_bucket, "sum_entries", (long)stats.buckets[i].sum_entries);
         add_assoc_long(elem_bucket, "sum_bytes", (long)stats.buckets[i].sum_bytes);
         add_assoc_long(elem_bucket, "sum_free_bytes", (long)stats.buckets[i].sum_free_bytes);
-    
+
         add_index_zval(elem_buckets, i, elem_bucket);
     }
 
     add_assoc_zval(return_value, "buckets", elem_buckets);
 }
-*/
+
 
 /*
  * Local variables:
