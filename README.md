@@ -25,8 +25,6 @@ Almost Useful APIs Support.
 
 Unfortunately, the following list are not supported on now.
 
-If you want them, please feel free to raise an issue
-
 |Group|API|
 |---|---|
 |[Record Iteration](http://yahoo.github.io/mdbm/api/group__RecordIterationGroup.html)|mdbm_iterate|
@@ -34,6 +32,8 @@ If you want them, please feel free to raise an issue
 |[Statistics](http://yahoo.github.io/mdbm/api/group__StatisticsGroup.html)|mdbm_chunk_iterate|
 |[Cache and Backing Store](http://yahoo.github.io/mdbm/api/group__CacheAndBackingStoreGroup.html)|mdbm_set_backingstore|
 |[Import and Export](http://yahoo.github.io/mdbm/api/group__ImportExportGroup.html)|mdbm_cdbdump_to_file, mdbm_cdbdump_trailer_and_close, mdbm_cdbdump_add_record, mdbm_dbdump_to_file, mdbm_dbdump_trailer_and_close, mdbm_dbdump_add_record, mdbm_dbdump_export_header, mdbm_dbdump_import_header, mdbm_dbdump_import, mdbm_cdbdump_import|
+
+*If you want them, please feel free to raise an issue*
 
 #### Deprecated APIs
 
