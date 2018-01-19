@@ -15,6 +15,7 @@
 - [API](#api)
 - [Install](#install)
 - [Example](https://github.com/torden/php-mdbm/blob/master/README.api.md)
+- [Benchmark](#benchmark)
 - [Link](#link)
 
 ## API
@@ -111,6 +112,109 @@ make install
 
 See the [documentation](https://github.com/torden/php-mdbm/blob/master/README.api.md) for more details.
 
+## Benchmark
+
+See the [Source Code](https://github.com/torden/php-mdbm/tree/master/benchmark).
+
+### Command
+
+```
+cd php-mdbm/src/benchmark/
+composer install
+```
+
+### Spec
+
+#### Host
+
+|Type|Spec|
+|---|---|
+|CPU|Inte i-7|
+|RAM|DDR4 32G|
+|HDD|Nvme M.2 SSD|
+
+#### VM
+
+|Type|Spec|
+|---|---|
+|Machine|VM(VirtualBox)|
+|OS|Ubuntu 17.10.1 (Artful Aardvark)|
+|CPU|2 vCore|
+|RAM|8G|
+|PHP|7.0.26|
+|mdbm|master branch|
+|php-mdbm|v0.5.0|
+
+### Simple INSERTs
+
+```
+php src/mdbm_simple_store.php -live
+```
+
+```
+ Created by B. van Hoekelen version 2.3.2 PHP v7.0.26
+ Max memory 128M, max execution time unlimited on 2018-01-21 01:33:02
+
+   Label                                                         Time        Memory        Peak
+---------------------------------------------------------------------------------------------------
+ > Calibrate point                                               2.86 μs |    0.00 KB |    2.00 MB
+ > mdbm store(number, number) :: 100,000                       297.88 ms |    0.00 KB |    2.00 MB
+ > mdbm store(string, string) :: 100,000                       329.36 ms |    0.00 KB |    2.00 MB
+ > mdbm store(number, number) :: 1,000,000                       2.94  s |    0.00 KB |    2.00 MB
+ > mdbm store(string, string) :: 1,000,000                       3.36  s |    0.00 KB |    2.00 MB
+ > mdbm store(number, number):: 10,000,000                       70.4  s |    0.00 KB |    2.00 MB
+ > mdbm store(string, string) :: 10,000,000                    125.46  s |    0.00 KB |    2.00 MB
+---------------------------------------------------------------------------------------------------
+   Total 7 taken                             01-21 01:36:25    202.78  s      0.00 KB      2.00 MB
+```
+
+### Simple Random FETCHs
+
+```
+php src/mdbm_simple_fetch.php -live
+```
+
+```
+ Created by B. van Hoekelen version 2.3.2 PHP v7.0.26
+ Max memory 128M, max execution time unlimited on 2018-01-21 01:37:49
+
+   Label                                                         Time        Memory        Peak
+---------------------------------------------------------------------------------------------------
+ > Calibrate point                                               4.05 μs |    0.00 KB |    2.00 MB
+ > mdbm random fetch(number) :: 100,000                        140.18 ms |    0.00 KB |    2.00 MB
+ > mdbm random fetch(string) :: 100,000                        161.95 ms |    0.00 KB |    2.00 MB
+ > mdbm random fetch(number) :: 1,000,000                        1.44  s |    0.00 KB |    2.00 MB
+ > mdbm random fetch(string) :: 1,000,000                        1.63  s |    0.00 KB |    2.00 MB
+ > mdbm random fetch(number):: 10,000,000                       15.07  s |    0.00 KB |    2.00 MB
+ > mdbm random fetch(number) :: 10,000,000                      16.97  s |    0.00 KB |    2.00 MB
+---------------------------------------------------------------------------------------------------
+   Total 7 taken                             01-21 01:38:24     35.42  s      0.00 KB      2.00 MB
+```
+
+
+### Simple Random FETCHs with Use the Preload API
+
+```
+php src/mdbm_simple_preload_fetch.php -live
+```
+
+```
+ Created by B. van Hoekelen version 2.3.2 PHP v7.0.26
+ Max memory 128M, max execution time unlimited on 2018-01-21 01:39:36
+
+   Label                                                         Time        Memory        Peak
+---------------------------------------------------------------------------------------------------
+ > Calibrate point                                               4.05 μs |    0.00 KB |    2.00 MB
+ > mdbm::preload random fetch(number) :: 100,000               138.52 ms |    0.00 KB |    2.00 MB
+ > mdbm::preload random fetch(string) :: 100,000               154.26 ms |    0.00 KB |    2.00 MB
+ > mdbm::preload random fetch(number) :: 1,000,000                1.4  s |    0.00 KB |    2.00 MB
+ > mdbm::preload random fetch(string) :: 1,000,000               1.58  s |    0.00 KB |    2.00 MB
+ > mdbm::preload random fetch(number):: 10,000,000              14.83  s |    0.00 KB |    2.00 MB
+ > mdbm::preload random fetch(number) :: 10,000,000             16.73  s |    0.00 KB |    2.00 MB
+---------------------------------------------------------------------------------------------------
+   Total 7 taken                             01-21 01:40:11     34.83  s      0.00 KB      2.00 MB
+```
+
 ## Link
 
 - [Yahoo! MDBM](https://github.com/yahoo/mdbm)
@@ -127,3 +231,4 @@ See the [documentation](https://github.com/torden/php-mdbm/blob/master/README.ap
 ---
 
 *Please feel free. I hope it is helpful for you.*
+
