@@ -60,6 +60,7 @@ static int le_link;
 
 typedef long int _ZEND_LONG;
 typedef int _ZEND_STR_LEN;
+typedef char* _ZEND_STRING_PTR; 
 
     #define _FETCH_RES(mdbm_link_index, id) {\
         if (mdbm_link_index == NULL) {\
@@ -73,13 +74,22 @@ typedef int _ZEND_STR_LEN;
         RETURN_STRINGL(pval, size, duplicate);\
     }
 
+    #define _R_STRING(pval, duplicate) {\
+        RETURN_STRING(pval, duplicate);\
+    }
+
     #define _ADD_ASSOC_STRINGL(arg, key, str, length, duplicate) {\
         add_assoc_stringl(arg, key, str, length, duplicate); \
+    }
+
+    #define _ADD_ASSOC_STR(arg, key, str, duplicate) {\
+        add_assoc_string(arg, key, str, duplicate); \
     }
 #else // PHP7
 
 typedef zend_long _ZEND_LONG;
 typedef size_t _ZEND_STR_LEN;
+typedef zend_string* _ZEND_STRING_PTR; 
 
     #define _FETCH_RES(mdbm_link_index, id) {\
         mdbm_link = (php_mdbm_open *)zend_fetch_resource(Z_RES_P(mdbm_link_index), LE_MDBM_NAME, le_link);\
@@ -93,12 +103,19 @@ typedef size_t _ZEND_STR_LEN;
         RETURN_STRINGL(pval, size);\
     }
 
+    #define _R_STRING(pval, duplicate) {\
+        RETURN_STR(pval);\
+    }
+
     #define _ADD_ASSOC_STRINGL(arg, key, str, length, duplicate) {\
         add_assoc_stringl(arg, key, str, length); \
     }
+
+    #define _ADD_ASSOC_STR(arg, key, str, duplicate) {\
+        add_assoc_str(arg, key, str); \
+    }
+
 #endif
-
-
 
 #define _CHECK_MDBM_STR_MAXLEN(key_len) {\
     if (key_len > MDBM_KEYLEN_MAX) {\
@@ -216,7 +233,7 @@ static inline char* copy_strptr(char *dptr, int dsize) {
 
     TSRMLS_FETCH();
 
-    pretval = ecalloc(dsize+2, sizeof(char));
+    pretval = emalloc(dsize+1);
     if (pretval == NULL) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory");
         return NULL;
@@ -230,6 +247,39 @@ static inline char* copy_strptr(char *dptr, int dsize) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to strncpy");
         return NULL;
     }
+
+    return pretval;
+}
+
+//FIX : "Warning: String is not zero-terminated" issue aftre ran mdbm_preload
+static inline _ZEND_STRING_PTR copy_mdbmstr_to_zendstring(char *dptr, int dsize) {
+
+    _ZEND_STRING_PTR pretval = NULL;
+
+    TSRMLS_FETCH();
+
+#if PHP_VERSION_ID < 70000
+    pretval = emalloc(dsize+1);
+    if (pretval == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory");
+        return NULL;
+    }
+
+    memset(pretval, 0x00, dsize+1);
+
+    //copy
+    strncpy(pretval, dptr, dsize);
+    if (pretval == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to strncpy");
+        return NULL;
+    }
+#else
+    pretval = zend_string_init(dptr, dsize, 0);
+    if (pretval == NULL) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory");
+        return NULL;
+    }
+#endif
 
     return pretval;
 }
@@ -2266,7 +2316,7 @@ PHP_FUNCTION(mdbm_fetch) {
     char *pkey = NULL;
     _ZEND_STR_LEN key_len = 0;
 
-    char *pretval = NULL;
+    _ZEND_STRING_PTR pretval = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
@@ -2293,13 +2343,11 @@ PHP_FUNCTION(mdbm_fetch) {
         RETURN_FALSE;
     }
 
-    //for fix "Warning: String is not zero-terminated" issue aftre ran mdbm_preload
-    pretval = copy_strptr(val.dptr, val.dsize);
+    pretval = copy_mdbmstr_to_zendstring(val.dptr, val.dsize);
     if (pretval == NULL) {
         RETURN_FALSE;
     }
-
-    _R_STRINGL(pretval, val.dsize+1, 0);
+    _R_STRING(pretval, 0);
 }
 
 PHP_FUNCTION(mdbm_fetch_r) {
@@ -2316,7 +2364,7 @@ PHP_FUNCTION(mdbm_fetch_r) {
     char *pkey = NULL;
     _ZEND_STR_LEN key_len = 0;
 
-    char *pretval = NULL;
+    _ZEND_STRING_PTR pretval = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s) with key");
@@ -2352,14 +2400,13 @@ PHP_FUNCTION(mdbm_fetch_r) {
         RETURN_FALSE;
     }
 
-    //for fix "Warning: String is not zero-terminated" issue aftre ran mdbm_preload
-    pretval = copy_strptr(val.dptr, val.dsize);
+    pretval = copy_mdbmstr_to_zendstring(val.dptr, val.dsize);
     if (pretval == NULL) {
         RETURN_FALSE;
     }
 
     array_init(return_value);
-    _ADD_ASSOC_STRINGL(return_value, HASHKEY_VAL, pretval, val.dsize, 0);
+    _ADD_ASSOC_STR(return_value, HASHKEY_VAL, pretval, 0);
     add_assoc_long(return_value, HASHKEY_PAGENO, parg_iter->m_pageno);
     add_assoc_long(return_value, HASHKEY_NEXT, parg_iter->m_next);
 }
@@ -2378,7 +2425,7 @@ PHP_FUNCTION(mdbm_fetch_dup_r) {
     char *pkey = NULL;
     _ZEND_STR_LEN key_len = 0;
 
-    char *pretval = NULL;
+    _ZEND_STRING_PTR pretval = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s) with key");
@@ -2414,14 +2461,13 @@ PHP_FUNCTION(mdbm_fetch_dup_r) {
         RETURN_FALSE;
     }
 
-    //for fix "Warning: String is not zero-terminated" issue aftre ran mdbm_preload
-    pretval = copy_strptr(val.dptr, val.dsize);
+    pretval = copy_mdbmstr_to_zendstring(val.dptr, val.dsize);
     if (pretval == NULL) {
         RETURN_FALSE;
     }
 
     array_init(return_value);
-    _ADD_ASSOC_STRINGL(return_value, HASHKEY_VAL, pretval, val.dsize, 0);
+    _ADD_ASSOC_STR(return_value, HASHKEY_VAL, pretval, 0);
     add_assoc_long(return_value, HASHKEY_PAGENO, parg_iter->m_pageno);
     add_assoc_long(return_value, HASHKEY_NEXT, parg_iter->m_next);
 }
@@ -2442,7 +2488,7 @@ PHP_FUNCTION(mdbm_fetch_info) {
     _ZEND_STR_LEN key_len = 0;
     struct mdbm_fetch_info info = {0x00,};
 
-    char *pretval = NULL;
+    _ZEND_STRING_PTR pretval = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s) with key");
@@ -2478,14 +2524,13 @@ PHP_FUNCTION(mdbm_fetch_info) {
         RETURN_FALSE;
     }
 
-    //for fix "Warning: String is not zero-terminated" issue aftre ran mdbm_preload
-    pretval = copy_strptr(val.dptr, val.dsize);
+    pretval = copy_mdbmstr_to_zendstring(val.dptr, val.dsize);
     if (pretval == NULL) {
         RETURN_FALSE;
     }
 
     array_init(return_value);
-    _ADD_ASSOC_STRINGL(return_value, HASHKEY_VAL, pretval, val.dsize, 0);
+    _ADD_ASSOC_STR(return_value, HASHKEY_VAL, pretval, 0);
     add_assoc_long(return_value, HASHKEY_PAGENO, parg_iter->m_pageno);
     add_assoc_long(return_value, HASHKEY_NEXT, parg_iter->m_next);
     add_assoc_long(return_value, HASHKEY_FLAGS, info.flags);
@@ -2579,8 +2624,8 @@ PHP_FUNCTION(mdbm_first) {
     int id = -1;
 
     kvpair kv = {0x00,};
-    char *pretkey = NULL;
-    char *pretval = NULL;
+    _ZEND_STRING_PTR pretkey = NULL;
+    _ZEND_STRING_PTR pretval = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
@@ -2597,20 +2642,20 @@ PHP_FUNCTION(mdbm_first) {
         RETURN_FALSE;
     }
 
-    pretkey = copy_strptr(kv.key.dptr, kv.key.dsize);
+    pretkey = copy_mdbmstr_to_zendstring(kv.key.dptr, kv.key.dsize);
     if (pretkey == NULL) {
         RETURN_FALSE;
     }
 
-    pretval = copy_strptr(kv.val.dptr, kv.val.dsize);
+    pretval = copy_mdbmstr_to_zendstring(kv.val.dptr, kv.val.dsize);
     if (pretval == NULL) {
         RETURN_FALSE;
     }
 
     array_init(return_value);
 
-    _ADD_ASSOC_STRINGL(return_value, HASHKEY_KEY, pretkey, kv.key.dsize, 0);
-    _ADD_ASSOC_STRINGL(return_value, HASHKEY_VAL, pretval, kv.val.dsize, 0);
+    _ADD_ASSOC_STR(return_value, HASHKEY_KEY, pretkey, 0);
+    _ADD_ASSOC_STR(return_value, HASHKEY_VAL, pretval, 0);
 }
 
 PHP_FUNCTION(mdbm_next) {
@@ -2620,8 +2665,8 @@ PHP_FUNCTION(mdbm_next) {
     int id = -1;
 
     kvpair kv = {0x00,};
-    char *pretkey = NULL;
-    char *pretval = NULL;
+    _ZEND_STRING_PTR pretkey = NULL;
+    _ZEND_STRING_PTR pretval = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
@@ -2638,20 +2683,20 @@ PHP_FUNCTION(mdbm_next) {
         RETURN_FALSE;
     }
 
-    pretkey = copy_strptr(kv.key.dptr, kv.key.dsize);
+    pretkey = copy_mdbmstr_to_zendstring(kv.key.dptr, kv.key.dsize);
     if (pretkey == NULL) {
         RETURN_FALSE;
     }
 
-    pretval = copy_strptr(kv.val.dptr, kv.val.dsize);
+    pretval = copy_mdbmstr_to_zendstring(kv.val.dptr, kv.val.dsize);
     if (pretval == NULL) {
         RETURN_FALSE;
     }
 
     array_init(return_value);
 
-    _ADD_ASSOC_STRINGL(return_value, HASHKEY_KEY, pretkey, kv.key.dsize, 0);
-    _ADD_ASSOC_STRINGL(return_value, HASHKEY_VAL, pretval, kv.val.dsize, 0);
+    _ADD_ASSOC_STR(return_value, HASHKEY_KEY, pretkey, 0);
+    _ADD_ASSOC_STR(return_value, HASHKEY_VAL, pretval, 0);
 }
 
 PHP_FUNCTION(mdbm_firstkey) {
@@ -2661,7 +2706,7 @@ PHP_FUNCTION(mdbm_firstkey) {
     int id = -1;
 
     datum key = {0x00,};
-    char *pretkey = NULL;
+    _ZEND_STRING_PTR pretkey = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
@@ -2678,13 +2723,12 @@ PHP_FUNCTION(mdbm_firstkey) {
         RETURN_FALSE;
     }
 
-    //for fix "Warning: String is not zero-terminated" issue aftre ran mdbm_preload
-    pretkey = copy_strptr(key.dptr, key.dsize);
+    pretkey = copy_mdbmstr_to_zendstring(key.dptr, key.dsize);
     if (pretkey == NULL) {
         RETURN_FALSE;
     }
 
-    _R_STRINGL(pretkey, key.dsize, 0);
+    _R_STRING(pretkey, 0);
 }
 
 PHP_FUNCTION(mdbm_nextkey) {
@@ -2694,7 +2738,7 @@ PHP_FUNCTION(mdbm_nextkey) {
     int id = -1;
 
     datum val = {0x00,};
-    char *pretval = NULL;
+    _ZEND_STRING_PTR pretval = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
@@ -2711,13 +2755,11 @@ PHP_FUNCTION(mdbm_nextkey) {
         RETURN_FALSE;
     }
 
-    //for fix "Warning: String is not zero-terminated" issue aftre ran mdbm_preload
-    pretval = copy_strptr(val.dptr, val.dsize);
-    if (pretval == NULL) {
-        RETURN_FALSE;
-    }
-
-    _R_STRINGL(pretval, val.dsize, 0);
+     pretval = copy_mdbmstr_to_zendstring(val.dptr, val.dsize);
+     if (pretval == NULL) {
+         RETURN_FALSE;
+     }
+     _R_STRING(pretval, 0);
 }
 
 PHP_FUNCTION(mdbm_reset_global_iter) {
@@ -2799,8 +2841,8 @@ PHP_FUNCTION(mdbm_first_r) {
     int rv = -1;
 
     kvpair kv = {0x00,};
-    char *pretkey = NULL;
-    char *pretval = NULL;
+    _ZEND_STRING_PTR pretkey = NULL;
+    _ZEND_STRING_PTR pretval = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|a", &mdbm_link_index, &arr) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
@@ -2824,20 +2866,20 @@ PHP_FUNCTION(mdbm_first_r) {
         RETURN_FALSE;
     }
 
-    pretkey = copy_strptr(kv.key.dptr, kv.key.dsize);
+    pretkey = copy_mdbmstr_to_zendstring(kv.key.dptr, kv.key.dsize);
     if (pretkey == NULL) {
         RETURN_FALSE;
     }
 
-    pretval = copy_strptr(kv.val.dptr, kv.val.dsize);
+    pretval = copy_mdbmstr_to_zendstring(kv.val.dptr, kv.val.dsize);
     if (pretval == NULL) {
         RETURN_FALSE;
     }
 
     array_init(return_value);
 
-    _ADD_ASSOC_STRINGL(return_value, HASHKEY_KEY, pretkey, kv.key.dsize, 0);
-    _ADD_ASSOC_STRINGL(return_value, HASHKEY_VAL, pretval, kv.val.dsize, 0);
+    _ADD_ASSOC_STR(return_value, HASHKEY_KEY, pretkey, 0);
+    _ADD_ASSOC_STR(return_value, HASHKEY_VAL, pretval, 0);
     add_assoc_long(return_value, HASHKEY_PAGENO, parg_iter->m_pageno);
     add_assoc_long(return_value, HASHKEY_NEXT, parg_iter->m_next);
 }
@@ -2853,8 +2895,8 @@ PHP_FUNCTION(mdbm_next_r) {
     int rv = -1;
 
     kvpair kv = {0x00,};
-    char *pretkey = NULL;
-    char *pretval = NULL;
+    _ZEND_STRING_PTR pretkey = NULL;
+    _ZEND_STRING_PTR pretval = NULL;
 
     
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|a", &mdbm_link_index, &arr) == FAILURE) {
@@ -2879,12 +2921,12 @@ PHP_FUNCTION(mdbm_next_r) {
         RETURN_FALSE;
     }
 
-    pretkey = copy_strptr(kv.key.dptr, kv.key.dsize);
+    pretkey = copy_mdbmstr_to_zendstring(kv.key.dptr, kv.key.dsize);
     if (pretkey == NULL) {
         RETURN_FALSE;
     }
 
-    pretval = copy_strptr(kv.val.dptr, kv.val.dsize);
+    pretval = copy_mdbmstr_to_zendstring(kv.val.dptr, kv.val.dsize);
     if (pretval == NULL) {
         efree(pretkey);
         RETURN_FALSE;
@@ -2892,8 +2934,8 @@ PHP_FUNCTION(mdbm_next_r) {
 
     array_init(return_value);
 
-    _ADD_ASSOC_STRINGL(return_value, HASHKEY_KEY, pretkey, kv.key.dsize, 0);
-    _ADD_ASSOC_STRINGL(return_value, HASHKEY_VAL, pretval, kv.val.dsize, 0);
+    _ADD_ASSOC_STR(return_value, HASHKEY_KEY, pretkey, 0);
+    _ADD_ASSOC_STR(return_value, HASHKEY_VAL, pretval, 0);
     add_assoc_long(return_value, HASHKEY_PAGENO, parg_iter->m_pageno);
     add_assoc_long(return_value, HASHKEY_NEXT, parg_iter->m_next);
 
@@ -2911,7 +2953,7 @@ PHP_FUNCTION(mdbm_firstkey_r) {
     int rv = -1;
 
     datum key = {0x00,};
-    char *pretkey = NULL;
+    _ZEND_STRING_PTR pretkey = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|a", &mdbm_link_index, &arr) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
@@ -2935,14 +2977,14 @@ PHP_FUNCTION(mdbm_firstkey_r) {
         RETURN_FALSE;
     }
 
-    pretkey = copy_strptr(key.dptr, key.dsize);
+    pretkey = copy_mdbmstr_to_zendstring(key.dptr, key.dsize);
     if (pretkey == NULL) {
         RETURN_FALSE;
     }
 
     array_init(return_value);
 
-    _ADD_ASSOC_STRINGL(return_value, HASHKEY_KEY, pretkey, key.dsize, 0);
+    _ADD_ASSOC_STR(return_value, HASHKEY_KEY, pretkey, 0);
     add_assoc_long(return_value, HASHKEY_PAGENO, parg_iter->m_pageno);
     add_assoc_long(return_value, HASHKEY_NEXT, parg_iter->m_next);
 }
@@ -2959,7 +3001,7 @@ PHP_FUNCTION(mdbm_nextkey_r) {
     int rv = -1;
 
     datum key = {0x00,};
-    char *pretkey = NULL;
+    _ZEND_STRING_PTR pretkey = NULL;
     
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|a", &mdbm_link_index, &arr) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
@@ -2983,14 +3025,14 @@ PHP_FUNCTION(mdbm_nextkey_r) {
         RETURN_FALSE;
     }
 
-    pretkey = copy_strptr(key.dptr, key.dsize);
+    pretkey = copy_mdbmstr_to_zendstring(key.dptr, key.dsize);
     if (pretkey == NULL) {
         RETURN_FALSE;
     }
 
     array_init(return_value);
 
-    _ADD_ASSOC_STRINGL(return_value, HASHKEY_KEY, pretkey, key.dsize, 0);
+    _ADD_ASSOC_STR(return_value, HASHKEY_KEY, pretkey, 0);
     add_assoc_long(return_value, HASHKEY_PAGENO, parg_iter->m_pageno);
     add_assoc_long(return_value, HASHKEY_NEXT, parg_iter->m_next);
 }
@@ -3103,7 +3145,7 @@ PHP_FUNCTION(mdbm_get_cachemode_name) {
     const char *pcache_name = NULL;
     _ZEND_LONG cacheno = -1;
 
-    char *pretval = NULL;
+    _ZEND_STRING_PTR pretval = NULL;
     int retval_len = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &cacheno) == FAILURE) {
@@ -3119,14 +3161,11 @@ PHP_FUNCTION(mdbm_get_cachemode_name) {
     _CAPTURE_END();
     retval_len = (int)strlen(pcache_name);
 
-
-#if PHP_VERSION_ID < 70000
-    pretval = copy_strptr((char *)pcache_name, retval_len);
-    _R_STRINGL(pretval, retval_len, 0);
-#else // PHP7
-    _R_STRINGL(pcache_name, retval_len, 0);
-#endif
-
+     pretval = copy_mdbmstr_to_zendstring((char *)pcache_name, retval_len);
+     if (pretval == NULL) {
+         RETURN_FALSE;
+     }
+     _R_STRING(pretval, 0);
 }
 
 PHP_FUNCTION(mdbm_clean) {
@@ -3588,7 +3627,7 @@ PHP_FUNCTION(mdbm_get_stat_time) {
     int rv = -1;
     int id = -1;
     _ZEND_LONG type = -1;
-    char *pretval = NULL;
+    _ZEND_STRING_PTR pretval = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &type) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
@@ -3616,8 +3655,8 @@ PHP_FUNCTION(mdbm_get_stat_time) {
     ptime = ctime(&value);
     time_len = strlen(ptime);
 
-    pretval = copy_strptr((char *)ptime, time_len);
-    _R_STRINGL(pretval, time_len, 0);
+    pretval = copy_mdbmstr_to_zendstring((char *)ptime, time_len);
+    _R_STRING(pretval,0);
 }
 
 PHP_FUNCTION(mdbm_get_stat_counter) {
@@ -3776,7 +3815,7 @@ PHP_FUNCTION(mdbm_get_db_info) {
     mdbm_db_info_t info = {0x00,};
     int id = -1;
     int rv = -1;
-    char *pretval = NULL;
+    _ZEND_STRING_PTR pretval = NULL;
     size_t retval_len = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
@@ -3800,7 +3839,10 @@ PHP_FUNCTION(mdbm_get_db_info) {
     }
 
     retval_len = strlen(info.db_hash_funcname);
-    pretval = copy_strptr((char *)info.db_hash_funcname, retval_len);
+    pretval = copy_mdbmstr_to_zendstring((char *)info.db_hash_funcname, retval_len);
+    if (pretval == NULL) {
+        RETURN_FALSE;
+    }
 
     array_init(return_value);
     add_assoc_long(return_value, "db_page_size", (long)info.db_page_size);
@@ -3813,7 +3855,7 @@ PHP_FUNCTION(mdbm_get_db_info) {
     add_assoc_long(return_value, "db_dir_max_level", (long)info.db_dir_max_level);
     add_assoc_long(return_value, "db_dir_num_nodes", (long)info.db_dir_num_nodes);
     add_assoc_long(return_value, "db_hash_func", (long)info.db_hash_func);
-    _ADD_ASSOC_STRINGL(return_value, "db_hash_funcname", pretval, retval_len, 0);
+    _ADD_ASSOC_STR(return_value, "db_hash_funcname", pretval, 0);
     add_assoc_long(return_value, "db_spill_size", (long)info.db_spill_size);
     add_assoc_long(return_value, "db_cache_mode", (long)info.db_cache_mode);
 }
@@ -3858,7 +3900,7 @@ PHP_FUNCTION(mdbm_get_db_stats) {
     mdbm_stat_info_t stats = {0x00,};
     _ZEND_LONG flags = -1;
 
-    char *pretval = NULL;
+    _ZEND_STRING_PTR pretval = NULL;
     size_t retval_len = -1;
 
 
@@ -3911,8 +3953,10 @@ PHP_FUNCTION(mdbm_get_db_stats) {
 
 
     retval_len = strlen(info.db_hash_funcname);
-    pretval = copy_strptr((char *)info.db_hash_funcname, retval_len);
-
+    pretval = copy_mdbmstr_to_zendstring((char *)info.db_hash_funcname, retval_len);
+    if (pretval == NULL) {
+        RETURN_FALSE;
+    }
 
     //return_value
     array_init(return_value);
@@ -3933,7 +3977,7 @@ PHP_FUNCTION(mdbm_get_db_stats) {
     add_assoc_long(elem_dbinfo, "db_dir_max_level", (long)info.db_dir_max_level);
     add_assoc_long(elem_dbinfo, "db_dir_num_nodes", (long)info.db_dir_num_nodes);
     add_assoc_long(elem_dbinfo, "db_hash_func", (long)info.db_hash_func);
-    _ADD_ASSOC_STRINGL(elem_dbinfo, "db_hash_funcname", pretval, retval_len, 0);
+    _ADD_ASSOC_STR(elem_dbinfo, "db_hash_funcname", pretval, 0);
     add_assoc_long(elem_dbinfo, "db_spill_size", (long)info.db_spill_size);
     add_assoc_long(elem_dbinfo, "db_cache_mode", (long)info.db_cache_mode);
 

@@ -1,0 +1,125 @@
+[
+    {
+        "name": "bvanhoekelen/performance",
+        "version": "v2.3.2",
+        "version_normalized": "2.3.2.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/bvanhoekelen/performance.git",
+            "reference": "00fa253be954f643c8603dd56331f87ac5481119"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/bvanhoekelen/performance/zipball/00fa253be954f643c8603dd56331f87ac5481119",
+            "reference": "00fa253be954f643c8603dd56331f87ac5481119",
+            "shasum": ""
+        },
+        "require": {
+            "bvanhoekelen/terminal-style": "^1.0",
+            "php": ">=5.4.0"
+        },
+        "require-dev": {
+            "illuminate/database": "^5.4",
+            "illuminate/events": "^5.4",
+            "phpunit/phpunit": "^5.7"
+        },
+        "time": "2017-11-20T20:44:26+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Performance\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "Apache License 2.0"
+        ],
+        "authors": [
+            {
+                "name": "B. van Hoekelen",
+                "homepage": "https://github.com/bvanhoekelen/performance"
+            }
+        ],
+        "description": "PHP performance tool analyser your script on time, memory usage and db query. Support Laravel and Composer for web, web console and command line interfaces.",
+        "keywords": [
+            "analyser",
+            "command line",
+            "compressor",
+            "database",
+            "database query log",
+            "export",
+            "laravel",
+            "memory",
+            "performance",
+            "performance tool",
+            "php",
+            "php performance analyser",
+            "php performance tool",
+            "php-performance",
+            "query",
+            "query analyser",
+            "query log",
+            "terminal",
+            "time",
+            "web"
+        ]
+    },
+    {
+        "name": "bvanhoekelen/terminal-style",
+        "version": "v1.0.3",
+        "version_normalized": "1.0.3.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/bvanhoekelen/terminal-style.git",
+            "reference": "76ad5a98650106264a939049ea8d1572315af3f4"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/bvanhoekelen/terminal-style/zipball/76ad5a98650106264a939049ea8d1572315af3f4",
+            "reference": "76ad5a98650106264a939049ea8d1572315af3f4",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.4.0"
+        },
+        "require-dev": {
+            "larapack/dd": "1.*",
+            "phpunit/phpunit": "^5.7"
+        },
+        "time": "2017-11-20T19:51:48+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "files": [
+                "src/terminal-style.php"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "Apache License 2.0"
+        ],
+        "authors": [
+            {
+                "name": "B. van Hoekelen",
+                "homepage": "https://github.com/bvanhoekelen/terminal-style"
+            }
+        ],
+        "description": "Return your terminal message in style! Change the text style, text color and text background color form the terminal interface with ANSI color codes. The terminal style tool support Laravel and Composer.",
+        "keywords": [
+            "8-bits background color",
+            "ANSI color codes",
+            "ansi",
+            "bash",
+            "colors",
+            "command line",
+            "command line colors",
+            "command line style",
+            "php",
+            "php terminal colors",
+            "php terminal style",
+            "terminal",
+            "terminal colors"
+        ]
+    }
+]
