@@ -14,7 +14,7 @@
 
 - [API](#api)
 - [Install](#install)
-- [Example](#example)
+- [Example](https://github.com/torden/php-mdbm/blob/master/README.api.md)
 - [Link](#link)
 
 ## API
