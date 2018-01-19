@@ -184,6 +184,7 @@ PHP_FUNCTION(mdbm_get_stats);
 PHP_FUNCTION(mdbm_get_db_info);
 PHP_FUNCTION(mdbm_get_window_stats);
 PHP_FUNCTION(mdbm_get_db_stats);
+PHP_FUNCTION(mdbm_limit_size_v3);
 
 /* 
   	Declare any global variables you may need between the BEGIN

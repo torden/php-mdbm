@@ -444,6 +444,13 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_pmdbm_pno, 0, 0, 2)
     ZEND_ARG_INFO(0, pno)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_pmdbm_limitsize, 0, 0, 2)
+    ZEND_ARG_INFO(0, pmdbm)
+    ZEND_ARG_INFO(0, limitsize)
+ZEND_END_ARG_INFO()
+
+
+
 const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_log_minlevel,           arginfo_mdbm_log_minlevel)
     PHP_FE(mdbm_open,                   arginfo_mdbm_open)
@@ -554,6 +561,8 @@ const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_get_db_info,            arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_get_window_stats,       arginfo_mdbm_pmdbm)
     PHP_FE(mdbm_get_db_stats,           arginfo_mdbm_pmdbm_flags)
+
+    PHP_FE(mdbm_limit_size_v3,          arginfo_mdbm_pmdbm_limitsize) //support limited
 
     PHP_FE_END
 };
@@ -4023,6 +4032,34 @@ PHP_FUNCTION(mdbm_get_db_stats) {
     add_assoc_zval(return_value, "buckets", elem_buckets);
 }
 
+PHP_FUNCTION(mdbm_limit_size_v3) {
+
+    zval *mdbm_link_index = NULL;
+    php_mdbm_open *mdbm_link = NULL;
+    int rv = -1;
+    int id = -1;
+    _ZEND_LONG limitsize = -1;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &limitsize) == FAILURE) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+        RETURN_FALSE;
+    }
+
+    //check the overlow
+    CHECK_OVERFLOW(limitsize, 1, UINT32_MAX);
+
+    //fetch the resource
+    _FETCH_RES(mdbm_link_index, id);
+
+    _CAPTURE_START();
+    rv = mdbm_limit_size_v3(mdbm_link->pmdbm, (mdbm_ubig_t)limitsize, NULL, NULL); // The limit size is in terms of number of pages
+    _CAPTURE_END();
+    if (rv == -1) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
+}
 
 /*
  * Local variables:

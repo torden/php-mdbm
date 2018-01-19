@@ -49,6 +49,9 @@ CHECK_FALSE($db);
 $rv = mdbm_enable_stat_operations($db, MDBM_STATS_BASIC | MDBM_STATS_TIMED);
 CHECK_FALSE($db);
 
+$rv = mdbm_limit_size_v3($db, 5000);
+CHECK_FALSE($db);
+
 for($i=0;$i<=4096;$i++) {
     $rv = mdbm_store($db, $i*123, $i*986);
     CHECK_FALSE($rv);
