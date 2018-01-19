@@ -1,0 +1,17 @@
+{
+    "name": "torden/php-mdbm",
+    "type": "library",
+    "description": "PHP-mdbm is a PHP binds to the MDBM.",
+    "keywords": ["mdbm", "dbm", "hashtable", "nosql", "database"],
+    "homepage": "https://github.com/torden/php-mdbm",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Torden",
+            "role": "Lead, Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.29"
+    }
+}
