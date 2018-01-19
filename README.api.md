@@ -92,7 +92,7 @@ If this is not a multiple of psize, it will be increased to the next psize multi
 
 Returns an MDBM Handler, *FALSE* on errors.
 
-#### Examples
+#### Example
 
 ```php
 $db = mdbm_open("/tmp/test.mdbm", MDBM_O_CREATE | MDBM_O_RDWR, 0644);
@@ -123,7 +123,7 @@ mdbm_close(resource $db);
 
 N/A
 
-#### Examples
+#### Example
 
 ```php
 $db = mdbm_open("/tmp/test.mdbm", MDBM_O_RDWR, 0644);
@@ -173,7 +173,7 @@ Values for flags mask:
 
  Returns **TRUE** on success or **FALSE** on failure.
 
-#### Examples
+#### Example
 
 ```php
 $db = mdbm_open("/tmp/test.mdbm", MDBM_O_CREATE | MDBM_O_RDWR, 0644);
@@ -213,7 +213,7 @@ string or bool mdbm_fetch(resource db, string key);
 
 Returns an string, *FALSE* on errors.
 
-#### Examples
+#### Example
 
 ```php
 $db = mdbm_open("/tmp/test.mdbm", MDBM_O_RDONLY, 0644);
@@ -247,7 +247,7 @@ bool mdbm_delete(resource db, string key);
 
 Returns an string, *FALSE* on errors.
 
-#### Examples
+#### Example
 
 ```php
 $db = mdbm_open("/tmp/test.mdbm", MDBM_O_RDONLY, 0644);
@@ -282,7 +282,7 @@ The properties of the array are:
 - **___pageno** : fetched last number of page
 - **___next** : Index for getnext
 
-#### Examples
+#### Example
 
 ```php
 $db = mdbm_open("/tmp/test.mdbm", MDBM_O_CREATE | MDBM_O_RDWR, 0644);
@@ -321,7 +321,7 @@ The properties of the array are:
 - **___next** : Index for getnext
 
 
-#### Examples
+#### Example
 
 ```php
 $db = mdbm_open("/tmp/test.mdbm", MDBM_O_RDONLY, 0644);
@@ -355,7 +355,7 @@ mdbm_reset_global_iter(resource $db);
 
 N/A
 
-#### Examples
+#### Example
 
 ```php
 $db = mdbm_open("/tmp/test.mdbm", MDBM_O_RDONLY, 0644);
@@ -379,7 +379,7 @@ $kv = mdbm_next($db);
 print_r($kv);
 ```
 
-## Example
+## Examples
 
 ### Creating and populating a database
 
