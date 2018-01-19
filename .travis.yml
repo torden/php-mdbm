@@ -28,5 +28,6 @@ script:
     - phpize
     - ./configure --with-php-config=`which php-config` --with-mdbm=/usr/local/mdbm/
     - make -j2
+    - make test
     - make test TESTS="-q -v -m"
     - ./travis-ci-check.sh

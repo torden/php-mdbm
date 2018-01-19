@@ -16,7 +16,7 @@ See the [MDBM API Document](http://yahoo.github.io/mdbm/api/modules.html) for mo
  	- [mdbm_get_iter](#mdbm_get_iter)
 	- [mdbm_get_global_iter](#mdbm_get_global_iter)
 	- [mdbm_reset_global_iter](#mdbm_reset_global_iter)
-- [Example](#example)
+- [Examples](#examples)
     - [Creating and populating a database](#creating-and-populating-a-database)
     - [Fetching records in-place](#fetching-records-in-place)
     - [Replacing(Updating) value of records in-place](#replacing(updating)-value-of-records-in-place)
@@ -92,7 +92,7 @@ If this is not a multiple of psize, it will be increased to the next psize multi
 
 Returns an MDBM Handler, *FALSE* on errors.
 
-#### Examples
+#### Example
 
 ```php
 $db = mdbm_open("/tmp/test.mdbm", MDBM_O_CREATE | MDBM_O_RDWR, 0644);
@@ -123,7 +123,7 @@ mdbm_close(resource $db);
 
 N/A
 
-#### Examples
+#### Example
 
 ```php
 $db = mdbm_open("/tmp/test.mdbm", MDBM_O_RDWR, 0644);
@@ -173,7 +173,7 @@ Values for flags mask:
 
  Returns **TRUE** on success or **FALSE** on failure.
 
-#### Examples
+#### Example
 
 ```php
 $db = mdbm_open("/tmp/test.mdbm", MDBM_O_CREATE | MDBM_O_RDWR, 0644);
@@ -213,7 +213,7 @@ string or bool mdbm_fetch(resource db, string key);
 
 Returns an string, *FALSE* on errors.
 
-#### Examples
+#### Example
 
 ```php
 $db = mdbm_open("/tmp/test.mdbm", MDBM_O_RDONLY, 0644);
@@ -247,7 +247,7 @@ bool mdbm_delete(resource db, string key);
 
 Returns an string, *FALSE* on errors.
 
-#### Examples
+#### Example
 
 ```php
 $db = mdbm_open("/tmp/test.mdbm", MDBM_O_RDONLY, 0644);
@@ -282,7 +282,7 @@ The properties of the array are:
 - **___pageno** : fetched last number of page
 - **___next** : Index for getnext
 
-#### Examples
+#### Example
 
 ```php
 $db = mdbm_open("/tmp/test.mdbm", MDBM_O_CREATE | MDBM_O_RDWR, 0644);
@@ -321,7 +321,7 @@ The properties of the array are:
 - **___next** : Index for getnext
 
 
-#### Examples
+#### Example
 
 ```php
 $db = mdbm_open("/tmp/test.mdbm", MDBM_O_RDONLY, 0644);
@@ -355,7 +355,7 @@ mdbm_reset_global_iter(resource $db);
 
 N/A
 
-#### Examples
+#### Example
 
 ```php
 $db = mdbm_open("/tmp/test.mdbm", MDBM_O_RDONLY, 0644);
@@ -377,6 +377,215 @@ while($kv) {
 mdbm_reset_global_iter($db);
 $kv = mdbm_next($db);
 print_r($kv);
+```
+
+## Examples
+
+### Creating and populating a database
+
+```php
+<?php
+$db = mdbm_open("/tmp/test1.mdbm", MDBM_O_RDWR|MDBM_O_CREAT|MDBM_LARGE_OBJECTS|MDBM_O_TRUNC|MDBM_ANY_LOCKS, 0666, 0,0);
+if($db === false) {
+    echo "Unable to create database";
+    exit(2);
+}
+
+mdbm_lock($db);
+
+for($i=0;$i<65535;$i++) {
+
+    $v = rand(1,65535);
+    //$rv = mdbm_store($db, $i, $v, MDBM_INSERT); same below
+    $rv = mdbm_store($db, $i, $v);
+    if($rv === false) {
+        echo "failed to store";
+        break;
+    }
+}
+
+mdbm_unlock($db);
+
+mdbm_sync(); //optional flush to disk
+mdbm_close($db);
+?>
+```
+
+### Fetching records in-place
+
+```php
+<?php
+$db = mdbm_open("/tmp/test1.mdbm", MDBM_O_RDWR, 0666, 0,0);
+if($db === false) {
+    echo "Unable to open database";
+    exit(2);
+}
+
+for($i=0;$i<65535;$i++) {
+
+    $v = rand(1,65535);
+    $val = mdbm_fetch($db, $v);
+    if($val === false) {
+        echo "failed to store";
+        break;
+    }
+
+    printf("store : val=%s\n", $val);
+}
+
+mdbm_close($db);
+?>
+```
+
+### Replacing(Updating) value of records in-place
+
+```php
+<?php
+$db = mdbm_open("/tmp/test1.mdbm", MDBM_O_RDWR, 0666, 0,0);
+if($db === false) {
+    echo "Unable to open database";
+    exit(2);
+}
+
+for($i=0;$i<10;$i++) {
+
+    $val = mdbm_fetch($db, $i);
+    if($val === false) {
+        echo "failed to fetch";
+        break;
+    }
+
+    $v = rand(1,65535);
+
+    printf("replace : val=%s to %s\n", $val, $v);
+
+    $rv = mdbm_store($db, $v, MDBM_REPLACE);
+    if($rv === false) {
+        echo "failed to store(replace)";
+        break;
+    }
+}
+
+mdbm_close($db);
+?>
+```
+
+### Deleting records in-place
+
+```php
+<?php
+$db = mdbm_open("/tmp/test1.mdbm", MDBM_O_RDWR, 0666, 0,0);
+if($db === false) {
+    echo "Unable to open database";
+    exit(2);
+}
+
+for($i=0;$i<10;$i++) {
+
+    $v = rand(1,65535);
+    $val = mdbm_fetch($db, $v);
+    if($val == false) {
+        echo "failed to fetch";
+        break;
+    }
+
+    printf("delete : val=%s\n", $val);
+
+    $rv = mdbm_delete($db, $v);
+    if($rv === false) {
+        echo "failed to delete";
+        break;
+    }
+}
+
+mdbm_sync(); //optional flush to disk
+mdbm_close($db);
+?>
+```
+
+
+### Adding/replacing records
+
+```php
+<?php
+$db = mdbm_open("/tmp/test1.mdbm", MDBM_O_RDWR, 0666, 0,0);
+if($db === false) {
+    echo "Unable to open database";
+    exit(2);
+}
+
+for($i=65536;$i<655360;$i++) {
+
+    mdbm_lock($db);
+    $rv = mdbm_store($db, $v, MDBM_REPLACE);
+    mdbm_unlock($db);
+
+    if($rv === false) {
+        echo "failed to store(replace)";
+        break;
+    }
+}
+
+mdbm_close($db);
+?>
+```
+
+
+### Iterating over all records
+
+```php
+<?php
+$db = mdbm_open("/tmp/test1.mdbm", MDBM_O_RDWR, 0666, 0,0);
+if($db === false) {
+    echo "Unable to open database";
+    exit(2);
+}
+
+$kv = mdbm_first($db);
+if($kv === false) {
+    echo "failed to get a first record";
+}
+
+while($kv) {
+
+    print_r($kv);
+    $kv = mdbm_next($db);
+}
+
+$rv = mdbm_close($db);
+if ($rv === false) {
+    FAIL();
+}
+?>
+```
+
+
+### Iterating over all keys
+
+```php
+<?php
+$db = mdbm_open("/tmp/test1.mdbm", MDBM_O_RDWR, 0666, 0,0);
+if($db === false) {
+    echo "Unable to open database";
+    exit(2);
+}
+
+$key = mdbm_firstkey($db);
+if($key === false) {
+    echo "failed to get a first record";
+}
+
+while($key != false) {
+
+    echo "$kv\n";
+    $key = mdbm_nextkey($db);
+}
+
+$rv = mdbm_close($db);
+if ($rv === false) {
+    FAIL();
+}
+?>
 ```
 
 ## Constants
