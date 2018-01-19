@@ -51,7 +51,8 @@ typedef struct _php_mdbm_open {
     int enable_stat; //fix : reset_stat_op before enable_stat_op
 } php_mdbm_open;
 
-static int le_link, loglevel, dev_null, org_stdout, org_stderr;
+static int le_link;
+//static int le_link, loglevel, dev_null, org_stdout, org_stderr;
 
 #define LE_MDBM_NAME "PHP-MDBM"
 
@@ -201,10 +202,12 @@ static void _close_mdbm_link(zend_resource *rsrc TSRMLS_DC) {
 }
 #endif
 
+/* - Would use in the future
 static int php_info_print(const char *str) {
     TSRMLS_FETCH();
     return php_output_write(str, strlen(str) TSRMLS_CC);
 }
+*/
 
 //FIX : "Warning: String is not zero-terminated" issue aftre ran mdbm_preload
 static inline char* copy_strptr(char *dptr, int dsize) {
@@ -871,7 +874,7 @@ PHP_FUNCTION(mdbm_log_minlevel) {
 
 PHP_FUNCTION(mdbm_open) {
 
-    unsigned char *pfilepath = NULL;
+    const char *pfilepath = NULL;
     _ZEND_STR_LEN path_len = 0;
     _ZEND_LONG flags = 0;
     _ZEND_LONG mode = 0;
@@ -944,7 +947,6 @@ PHP_FUNCTION(mdbm_dup_handle) {
     php_mdbm_open *mdbm_link = NULL;
     php_mdbm_open *mdbm_new_link = NULL;
     int id = -1;
-    int rv = -1;
 
     MDBM *pnew_mdbm = NULL;
     _ZEND_LONG flags = 0; // flags Reserved for future use
@@ -1047,7 +1049,6 @@ PHP_FUNCTION(mdbm_truncate) {
     zval *mdbm_link_index = NULL;
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
-    int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
@@ -1066,7 +1067,6 @@ PHP_FUNCTION(mdbm_purge) {
     zval *mdbm_link_index = NULL;
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
-    int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
@@ -1718,11 +1718,7 @@ PHP_FUNCTION(mdbm_isowned) {
 
 PHP_FUNCTION(mdbm_lock_reset) {
 
-    zval *mdbm_link_index = NULL;
-    php_mdbm_open *mdbm_link = NULL;
-    int id = -1;
     int rv = -1;
-
     char *pdbfn = NULL;
     int dbfn_len = 0;
 
@@ -1756,9 +1752,6 @@ PHP_FUNCTION(mdbm_lock_reset) {
 
 PHP_FUNCTION(mdbm_delete_lockfiles) {
 
-    zval *mdbm_link_index = NULL;
-    php_mdbm_open *mdbm_link = NULL;
-    int id = -1;
     int rv = -1;
 
     char *pdbfn = NULL;
@@ -2097,7 +2090,6 @@ PHP_FUNCTION(mdbm_compress_tree) {
     zval *mdbm_link_index = NULL;
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
-    int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
@@ -2268,7 +2260,6 @@ PHP_FUNCTION(mdbm_fetch) {
     zval *mdbm_link_index = NULL;
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
-    int rv = -1;
     datum key = {0x00,};
     datum val = {0x00,};
 
@@ -2586,7 +2577,6 @@ PHP_FUNCTION(mdbm_first) {
     zval *mdbm_link_index = NULL;
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
-    int rv = -1;
 
     kvpair kv = {0x00,};
     char *pretkey = NULL;
@@ -2628,7 +2618,6 @@ PHP_FUNCTION(mdbm_next) {
     zval *mdbm_link_index = NULL;
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
-    int rv = -1;
 
     kvpair kv = {0x00,};
     char *pretkey = NULL;
@@ -2670,7 +2659,6 @@ PHP_FUNCTION(mdbm_firstkey) {
     zval *mdbm_link_index = NULL;
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
-    int rv = -1;
 
     datum key = {0x00,};
     char *pretkey = NULL;
@@ -2704,7 +2692,6 @@ PHP_FUNCTION(mdbm_nextkey) {
     zval *mdbm_link_index = NULL;
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
-    int rv = -1;
 
     datum val = {0x00,};
     char *pretval = NULL;
@@ -2738,7 +2725,6 @@ PHP_FUNCTION(mdbm_reset_global_iter) {
     zval *mdbm_link_index = NULL;
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
-    int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
@@ -2758,7 +2744,6 @@ PHP_FUNCTION(mdbm_get_global_iter) {
     zval *mdbm_link_index = NULL;
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
-    int rv = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
@@ -2778,8 +2763,6 @@ PHP_FUNCTION(mdbm_get_iter) {
     MDBM_ITER iter;
     _ZEND_LONG in_pageno = -1;
     _ZEND_LONG in_next = -1;
-    int id = -1;
-    int rv = -1;
     int argc = ZEND_NUM_ARGS();
     
 
@@ -3117,11 +3100,6 @@ PHP_FUNCTION(mdbm_get_cachemode) {
 
 PHP_FUNCTION(mdbm_get_cachemode_name) {
 
-    zval *mdbm_link_index = NULL;
-    php_mdbm_open *mdbm_link = NULL;
-    int id = -1;
-    int rv = -1;
-
     const char *pcache_name = NULL;
     _ZEND_LONG cacheno = -1;
 
@@ -3366,7 +3344,6 @@ PHP_FUNCTION(mdbm_unlock_pages) {
 
 PHP_FUNCTION(mdbm_get_hash_value) {
 
-    int id = -1;
     int rv = -1;
     uint32_t hashv = -1;
     datum key = {0x00,};
@@ -3546,7 +3523,6 @@ PHP_FUNCTION(mdbm_reset_stat_operations) {
 
     zval *mdbm_link_index = NULL;
     php_mdbm_open *mdbm_link = NULL;
-    int rv = -1;
     int id = -1;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
@@ -3649,12 +3625,9 @@ PHP_FUNCTION(mdbm_get_stat_counter) {
     zval *mdbm_link_index = NULL;
     php_mdbm_open *mdbm_link = NULL;
     mdbm_counter_t value = 0;
-    char *ptime = NULL;
-    size_t time_len = 0;
     int rv = -1;
     int id = -1;
     _ZEND_LONG type = -1;
-    char *pretval = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &type) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
