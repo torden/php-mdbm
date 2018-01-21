@@ -78,6 +78,9 @@ PHP_RSHUTDOWN_FUNCTION(mdbm);
 PHP_MINFO_FUNCTION(mdbm);
 
 PHP_FUNCTION(mdbm_log_minlevel);
+PHP_FUNCTION(mdbm_select_log_plugin);
+PHP_FUNCTION(mdbm_set_log_filename);
+
 PHP_FUNCTION(mdbm_open);
 PHP_FUNCTION(mdbm_dup_handle);
 PHP_FUNCTION(mdbm_close);
