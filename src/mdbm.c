@@ -219,6 +219,13 @@ static void _close_mdbm_link(zend_resource *rsrc TSRMLS_DC) {
 }
 #endif
 
+#define _R_RV_BOOLEN(rv) {\
+    if (rv == -1) {\
+        RETURN_FALSE;\
+    }\
+    RETURN_TRUE;\
+}
+
 /* - Would use in the future
 static int php_info_print(const char *str) {
     TSRMLS_FETCH();
@@ -226,7 +233,7 @@ static int php_info_print(const char *str) {
 }
 */
 
-//FIX : "Warning: String is not zero-terminated" issue aftre ran mdbm_preload
+//FIX : "Warning: String is not zero-terminated"
 static inline char* copy_strptr(char *dptr, int dsize) {
 
     char *pretval = NULL;
@@ -251,7 +258,7 @@ static inline char* copy_strptr(char *dptr, int dsize) {
     return pretval;
 }
 
-//FIX : "Warning: String is not zero-terminated" issue aftre ran mdbm_preload
+//FIX : "Warning: String is not zero-terminated"
 static inline _ZEND_STRING_PTR copy_mdbmstr_to_zendstring(char *dptr, int dsize) {
 
     _ZEND_STRING_PTR pretval = NULL;
@@ -502,10 +509,16 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_pmdbm_limitsize, 0, 0, 2)
     ZEND_ARG_INFO(0, limitsize)
 ZEND_END_ARG_INFO()
 
-
+ZEND_BEGIN_ARG_INFO_EX(arginfo_mdbm_pmdbm_filename, 0, 0, 2)
+    ZEND_ARG_INFO(0, pmdbm)
+    ZEND_ARG_INFO(0, filename)
+ZEND_END_ARG_INFO()
 
 const zend_function_entry mdbm_functions[] = {
     PHP_FE(mdbm_log_minlevel,           arginfo_mdbm_log_minlevel)
+    PHP_FE(mdbm_select_log_plugin,      arginfo_mdbm_pmdbm_flags)
+    PHP_FE(mdbm_set_log_filename,       arginfo_mdbm_pmdbm_filename)
+
     PHP_FE(mdbm_open,                   arginfo_mdbm_open)
     PHP_FE(mdbm_dup_handle,             arginfo_mdbm_pmdbm_optional_flags)
     PHP_FE(mdbm_close,                  arginfo_mdbm_pmdbm)
@@ -919,7 +932,61 @@ PHP_FUNCTION(mdbm_log_minlevel) {
     CHECK_OVERFLOW(flag, SHRT_MIN, SHRT_MAX);
 
     mdbm_log_minlevel((int)flag);
-    RETURN_TRUE;
+}
+
+PHP_FUNCTION(mdbm_select_log_plugin) {
+
+    _ZEND_LONG flag = 0;
+    int rv = -1;
+	char buf[10] = {0x00,};
+
+    if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &flag)) {
+        RETURN_FALSE;
+    }
+
+    if (flag < MDBM_LOG_TO_STDERR || flag > MDBM_LOG_TO_SYSLOG) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : flag(=%ld)", flag);
+        RETURN_FALSE;
+    }
+
+    //check the overlow
+    CHECK_OVERFLOW(flag, SHRT_MIN, SHRT_MAX);
+
+	switch (flag) {
+
+		case MDBM_LOG_TO_STDERR:
+			strncpy(buf, "stderr", 9);
+			break;
+		case MDBM_LOG_TO_FILE:
+			strncpy(buf, "file", 9);
+			break;
+
+		case MDBM_LOG_TO_SYSLOG:
+			strncpy(buf, "syslog", 9);
+			break;
+
+		default:
+            php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : flag(=%ld)", flag);
+            RETURN_FALSE;
+            break;
+	}
+
+    rv = mdbm_select_log_plugin((const char *)&buf);
+    _R_RV_BOOLEN(rv);
+}
+
+PHP_FUNCTION(mdbm_set_log_filename) {
+
+    const char *pfilepath = NULL;
+    _ZEND_STR_LEN path_len = 0;
+    int rv = -1;
+
+    if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "p", &pfilepath,&path_len)) {
+        RETURN_FALSE;
+    }
+
+    rv = mdbm_select_log_plugin(pfilepath);
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_open) {
@@ -1154,11 +1221,8 @@ PHP_FUNCTION(mdbm_replace_db) {
     _CAPTURE_START();
     rv = mdbm_replace_db(mdbm_link->pmdbm, pnewfile);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_replace_file) {
@@ -1183,11 +1247,8 @@ PHP_FUNCTION(mdbm_replace_file) {
     _CAPTURE_START();
     rv = mdbm_replace_file((const char*)poldfile, (const char *)pnewfile);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_pre_split) {
@@ -1212,11 +1273,8 @@ PHP_FUNCTION(mdbm_pre_split) {
     _CAPTURE_START();
     rv = mdbm_pre_split(mdbm_link->pmdbm, (mdbm_ubig_t)pages);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_fcopy) {
@@ -1262,11 +1320,8 @@ PHP_FUNCTION(mdbm_fcopy) {
     rv = mdbm_fcopy(mdbm_link->pmdbm, fd, flags);
     close(fd);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_sync) {
@@ -1287,11 +1342,8 @@ PHP_FUNCTION(mdbm_sync) {
     _CAPTURE_START();
     rv = mdbm_sync(mdbm_link->pmdbm);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_fsync) {
@@ -1312,11 +1364,8 @@ PHP_FUNCTION(mdbm_fsync) {
     _CAPTURE_START();
     rv = mdbm_fsync(mdbm_link->pmdbm);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_get_lockmode) {
@@ -1337,11 +1386,8 @@ PHP_FUNCTION(mdbm_get_lockmode) {
     _CAPTURE_START();
     rv = mdbm_get_lockmode(mdbm_link->pmdbm);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_lock) {
@@ -1362,11 +1408,8 @@ PHP_FUNCTION(mdbm_lock) {
     _CAPTURE_START();
     rv = mdbm_lock(mdbm_link->pmdbm);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_trylock) {
@@ -1387,11 +1430,8 @@ PHP_FUNCTION(mdbm_trylock) {
     _CAPTURE_START();
     rv = mdbm_trylock(mdbm_link->pmdbm);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_plock) {
@@ -1427,11 +1467,8 @@ PHP_FUNCTION(mdbm_plock) {
     _CAPTURE_START();
     rv = mdbm_plock(mdbm_link->pmdbm, &datum_key, (int)flags);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
-
-    RETURN_TRUE;
+    
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_tryplock) {
@@ -1467,11 +1504,8 @@ PHP_FUNCTION(mdbm_tryplock) {
     _CAPTURE_START();
     rv = mdbm_tryplock(mdbm_link->pmdbm, &datum_key, (int)flags);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_lock_shared) {
@@ -1492,11 +1526,8 @@ PHP_FUNCTION(mdbm_lock_shared) {
     _CAPTURE_START();
     rv = mdbm_lock_shared(mdbm_link->pmdbm);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_trylock_shared) {
@@ -1517,11 +1548,8 @@ PHP_FUNCTION(mdbm_trylock_shared) {
     _CAPTURE_START();
     rv = mdbm_trylock_shared(mdbm_link->pmdbm);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_lock_smart) {
@@ -1557,11 +1585,8 @@ PHP_FUNCTION(mdbm_lock_smart) {
     _CAPTURE_START();
     rv = mdbm_lock_smart(mdbm_link->pmdbm, &datum_key, (int)flags);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_trylock_smart) {
@@ -1597,11 +1622,8 @@ PHP_FUNCTION(mdbm_trylock_smart) {
     _CAPTURE_START();
     rv = mdbm_trylock_smart(mdbm_link->pmdbm, &datum_key, (int)flags);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_unlock) {
@@ -1622,11 +1644,8 @@ PHP_FUNCTION(mdbm_unlock) {
     _CAPTURE_START();
     rv = mdbm_unlock(mdbm_link->pmdbm);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_punlock) {
@@ -1662,11 +1681,8 @@ PHP_FUNCTION(mdbm_punlock) {
     _CAPTURE_START();
     rv = mdbm_punlock(mdbm_link->pmdbm, &datum_key, (int)flags);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_unlock_smart) {
@@ -1702,11 +1718,8 @@ PHP_FUNCTION(mdbm_unlock_smart) {
     _CAPTURE_START();
     rv = mdbm_unlock_smart(mdbm_link->pmdbm, &datum_key, (int)flags);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 
@@ -1762,7 +1775,7 @@ PHP_FUNCTION(mdbm_isowned) {
         RETURN_TRUE;
     }
  
-    php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to check the return value of mdbm_islocked");
+    php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to check the return value of mdbm_isowned");
     RETURN_FALSE;
 }
 
@@ -1793,11 +1806,8 @@ PHP_FUNCTION(mdbm_lock_reset) {
     _CAPTURE_START();
     rv = mdbm_lock_reset((const char *)&fn, 0);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_delete_lockfiles) {
@@ -1826,11 +1836,8 @@ PHP_FUNCTION(mdbm_delete_lockfiles) {
     _CAPTURE_START();
     rv = mdbm_delete_lockfiles((const char *)&fn);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_preload) {
@@ -1851,11 +1858,8 @@ PHP_FUNCTION(mdbm_preload) {
     _CAPTURE_START();
     rv = mdbm_preload(mdbm_link->pmdbm);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_get_errno) {
@@ -1901,11 +1905,8 @@ PHP_FUNCTION(mdbm_limit_dir_size) {
     _CAPTURE_START();
     rv = mdbm_limit_dir_size(mdbm_link->pmdbm, (int)pages);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_get_version) {
@@ -2022,11 +2023,8 @@ PHP_FUNCTION(mdbm_set_hash) {
     _CAPTURE_START();
     rv = mdbm_set_hash(mdbm_link->pmdbm, (int)hash);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_get_limit_size) {
@@ -2574,11 +2572,8 @@ PHP_FUNCTION(mdbm_delete) {
     _CAPTURE_START();
     rv = mdbm_delete(mdbm_link->pmdbm, key);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_delete_r) {
@@ -3108,11 +3103,8 @@ PHP_FUNCTION(mdbm_set_cachemode) {
     _CAPTURE_START();
     rv = mdbm_set_cachemode(mdbm_link->pmdbm, (int)flag);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_get_cachemode) {
@@ -3192,11 +3184,8 @@ PHP_FUNCTION(mdbm_clean) {
     _CAPTURE_START();
     rv = mdbm_clean(mdbm_link->pmdbm, (int)pagenum, 0); //flags Ignored
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_check) {
@@ -3234,11 +3223,8 @@ PHP_FUNCTION(mdbm_check) {
     _CAPTURE_START();
     rv = mdbm_check(mdbm_link->pmdbm, (int)level, (int)verbose);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_LONG(rv);
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_chk_all_page) {
@@ -3289,11 +3275,8 @@ PHP_FUNCTION(mdbm_chk_page) {
     _CAPTURE_START();
     rv = mdbm_chk_page(mdbm_link->pmdbm, (int)pagenum);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_protect) {
@@ -3324,11 +3307,8 @@ PHP_FUNCTION(mdbm_protect) {
     _CAPTURE_START();
     rv = mdbm_protect(mdbm_link->pmdbm, (int)protect);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_LONG(rv);
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_lock_pages) {
@@ -3349,11 +3329,8 @@ PHP_FUNCTION(mdbm_lock_pages) {
     _CAPTURE_START();
     rv = mdbm_lock_pages(mdbm_link->pmdbm);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_unlock_pages) {
@@ -3374,11 +3351,8 @@ PHP_FUNCTION(mdbm_unlock_pages) {
     _CAPTURE_START();
     rv = mdbm_unlock_pages(mdbm_link->pmdbm);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_get_hash_value) {
@@ -3515,11 +3489,8 @@ PHP_FUNCTION(mdbm_set_window_size) {
     _CAPTURE_START();
     rv = mdbm_set_window_size(mdbm_link->pmdbm, (size_t)wsize);
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 PHP_FUNCTION(mdbm_enable_stat_operations) {
@@ -4071,11 +4042,8 @@ PHP_FUNCTION(mdbm_limit_size_v3) {
     _CAPTURE_START();
     rv = mdbm_limit_size_v3(mdbm_link->pmdbm, (mdbm_ubig_t)limitsize, NULL, NULL); // The limit size is in terms of number of pages
     _CAPTURE_END();
-    if (rv == -1) {
-        RETURN_FALSE;
-    }
 
-    RETURN_TRUE;
+    _R_RV_BOOLEN(rv);
 }
 
 /*
