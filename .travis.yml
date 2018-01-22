@@ -29,5 +29,6 @@ script:
     - ./configure --with-php-config=`which php-config` --with-mdbm=/usr/local/mdbm/
     - make -j2
     - make test TESTS="-q -v"
+    - ./travis-ci-check.sh
     - make test TESTS="-q -v -m"
     - ./travis-ci-check.sh

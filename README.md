@@ -119,7 +119,7 @@ See the [Source Code](https://github.com/torden/php-mdbm/tree/master/benchmark).
 ### Command
 
 ```
-cd php-mdbm/src/benchmark/
+cd php-mdbm/benchmark/
 composer install
 ```
 
