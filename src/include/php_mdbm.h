@@ -18,7 +18,7 @@
 extern zend_module_entry mdbm_module_entry;
 #define phpext_mdbm_ptr &mdbm_module_entry
 
-#define PHP_MDBM_VERSION "0.0.3" 
+#define PHP_MDBM_VERSION "0.1.0" 
 #ifndef TRUE
 #define TRUE 1
 #endif

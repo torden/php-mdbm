@@ -176,8 +176,8 @@ typedef zend_string* _ZEND_STRING_PTR;
     }\
 }
 
-#define CHECK_EMPTY_STR_NAME(name, len) {\
-    if (len < 1) {\
+#define CHECK_EMPTY_STR_NAME(name, var, len) {\
+    if (len < 1 || var == NULL) {\
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` was empty", name);\
         RETURN_FALSE;\
     }\
@@ -910,10 +910,10 @@ PHP_MINFO_FUNCTION(mdbm)
     snprintf(ver, sizeof(ver), "%d", MDBM_API_VERSION);
 
     php_info_print_table_start();
-    php_info_print_table_header(2, "mdbm support", "enable");
-    php_info_print_table_row(2, "Development", "Torden <https://github.com/torden/php-mdbm>");
-    php_info_print_table_row(2, "Version (php-mdbm)", PHP_MDBM_VERSION);
-    php_info_print_table_row(2, "Version (mdbm)", ver);
+    php_info_print_table_header(2, "MDBM Support", "enable");
+    php_info_print_table_row(2, "MDBM API Version", ver);
+    php_info_print_table_row(2, "PHP MDBM Version", PHP_MDBM_VERSION);
+    php_info_print_table_row(2, "GitHub Repo.", "https://github.com/torden/php-mdbm");
     php_info_print_table_end();
 
     DISPLAY_INI_ENTRIES();
@@ -1000,7 +1000,7 @@ PHP_FUNCTION(mdbm_open) {
     MDBM *pmdbm = NULL;
     php_mdbm_open *mdbm_link = NULL;
 
-    if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sll|ll", &pfilepath,&path_len, &flags, &mode, &psize, &presize)) {
+    if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "pll|ll", &pfilepath,&path_len, &flags, &mode, &psize, &presize)) {
         RETURN_FALSE;
     }
 
@@ -1213,7 +1213,7 @@ PHP_FUNCTION(mdbm_replace_db) {
     }
 
     //check the length
-    CHECK_EMPTY_STR_NAME("file", newfile_len);
+    CHECK_EMPTY_STR_NAME("file", pnewfile, newfile_len);
 
     //fetch the resource
     _FETCH_RES(mdbm_link_index, id);
@@ -1241,8 +1241,8 @@ PHP_FUNCTION(mdbm_replace_file) {
     }
 
     //check the length
-    CHECK_EMPTY_STR_NAME("oldfile", oldfile_len);
-    CHECK_EMPTY_STR_NAME("newfile", newfile_len);
+    CHECK_EMPTY_STR_NAME("oldfile", poldfile, oldfile_len);
+    CHECK_EMPTY_STR_NAME("newfile", pnewfile, newfile_len);
 
     _CAPTURE_START();
     rv = mdbm_replace_file((const char*)poldfile, (const char *)pnewfile);
@@ -1295,7 +1295,7 @@ PHP_FUNCTION(mdbm_fcopy) {
     }
 
     //check the length
-    CHECK_EMPTY_STR_NAME("newfile", newfile_len);
+    CHECK_EMPTY_STR_NAME("newfile", pnewfile, newfile_len);
 
     //check the overlow
     CHECK_OVERFLOW(mode, 0, UINT_MAX);
@@ -1452,7 +1452,7 @@ PHP_FUNCTION(mdbm_plock) {
     }
 
     //check the length
-    CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", pkey, key_len);
 
     //check the overlow
     CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
@@ -1489,7 +1489,7 @@ PHP_FUNCTION(mdbm_tryplock) {
     }
 
     //check the length
-    CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", pkey, key_len);
 
     //check the overlow
     CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
@@ -1570,7 +1570,7 @@ PHP_FUNCTION(mdbm_lock_smart) {
     }
 
     //check the length
-    CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", pkey, key_len);
 
     //check the overlow
     CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
@@ -1607,7 +1607,7 @@ PHP_FUNCTION(mdbm_trylock_smart) {
     }
 
     //check the length
-    CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", pkey, key_len);
 
     //check the overlow
     CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
@@ -1666,7 +1666,7 @@ PHP_FUNCTION(mdbm_punlock) {
     }
 
     //check the length
-    CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", pkey, key_len);
 
     //check the overlow
     CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
@@ -1703,7 +1703,7 @@ PHP_FUNCTION(mdbm_unlock_smart) {
     }
 
     //check the length
-    CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", pkey, key_len);
 
     //check the overlow
     CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
@@ -1783,7 +1783,7 @@ PHP_FUNCTION(mdbm_lock_reset) {
 
     int rv = -1;
     char *pdbfn = NULL;
-    int dbfn_len = 0;
+    _ZEND_STR_LEN dbfn_len = 0;
 
     char fn[PATH_MAX] = {0x00};
 
@@ -1793,7 +1793,7 @@ PHP_FUNCTION(mdbm_lock_reset) {
     }
 
     //check the length
-    CHECK_EMPTY_STR_NAME("mdbm file path", dbfn_len);
+    CHECK_EMPTY_STR_NAME("mdbm file path", pdbfn, dbfn_len);
 
     strncpy(fn, pdbfn, dbfn_len);
     if (fn == NULL) {
@@ -1815,17 +1815,17 @@ PHP_FUNCTION(mdbm_delete_lockfiles) {
     int rv = -1;
 
     char *pdbfn = NULL;
-    int dbfn_len = 0;
+    _ZEND_STR_LEN dbfn_len = 0;
 
     char fn[PATH_MAX] = {0x00};
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &pdbfn, &dbfn_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "p", &pdbfn, &dbfn_len) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
     //check the length
-    CHECK_EMPTY_STR_NAME("mdbm file path", dbfn_len);
+    CHECK_EMPTY_STR_NAME("mdbm file path", pdbfn, dbfn_len);
 
     strncpy(fn, pdbfn, dbfn_len);
     if (fn == NULL) {
@@ -2179,8 +2179,8 @@ PHP_FUNCTION(mdbm_store) {
     }
 
     //check the length
-    CHECK_EMPTY_STR_NAME("key", key_len);
-    CHECK_EMPTY_STR_NAME("val", val_len);
+    CHECK_EMPTY_STR_NAME("key", pkey, key_len);
+    CHECK_EMPTY_STR_NAME("val", pval, val_len);
 
     //check the length of key
     _CHECK_MDBM_STR_MAXLEN(key_len);
@@ -2253,8 +2253,8 @@ PHP_FUNCTION(mdbm_store_r) {
     }
 
     //check the length
-    CHECK_EMPTY_STR_NAME("key", key_len);
-    CHECK_EMPTY_STR_NAME("val", val_len);
+    CHECK_EMPTY_STR_NAME("key", pkey, key_len);
+    CHECK_EMPTY_STR_NAME("val", pval, val_len);
 
     //check the length of key
     _CHECK_MDBM_STR_MAXLEN(key_len);
@@ -2322,7 +2322,7 @@ PHP_FUNCTION(mdbm_fetch) {
     }
 
     //check the length
-    CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", pkey, key_len);
 
     //check the length of key
     _CHECK_MDBM_STR_MAXLEN(key_len);
@@ -2370,7 +2370,7 @@ PHP_FUNCTION(mdbm_fetch_r) {
     }
 
     //check the length
-    CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", pkey, key_len);
 
     //check the length of key
     _CHECK_MDBM_STR_MAXLEN(key_len);
@@ -2431,7 +2431,7 @@ PHP_FUNCTION(mdbm_fetch_dup_r) {
     }
 
     //check the length
-    CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", pkey, key_len);
 
     //check the length of key
     _CHECK_MDBM_STR_MAXLEN(key_len);
@@ -2494,7 +2494,7 @@ PHP_FUNCTION(mdbm_fetch_info) {
     }
 
     //check the length
-    CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", pkey, key_len);
 
     //check the length of key
     _CHECK_MDBM_STR_MAXLEN(key_len);
@@ -2554,7 +2554,7 @@ PHP_FUNCTION(mdbm_delete) {
     }
 
     //check the length
-    CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", pkey, key_len);
 
     //check the length of key
     _CHECK_MDBM_STR_MAXLEN(key_len);
@@ -3372,7 +3372,7 @@ PHP_FUNCTION(mdbm_get_hash_value) {
     }
 
     //check the length
-    CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", pkey, key_len);
 
     //check the overlow
     CHECK_OVERFLOW(hfc, INT_MIN, INT_MAX);
@@ -3419,7 +3419,7 @@ PHP_FUNCTION(mdbm_get_page) {
     }
 
     //check the length
-    CHECK_EMPTY_STR_NAME("key", key_len);
+    CHECK_EMPTY_STR_NAME("key", pkey, key_len);
 
     //check the length of key
     _CHECK_MDBM_STR_MAXLEN(key_len);
