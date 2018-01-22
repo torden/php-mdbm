@@ -52,6 +52,7 @@ Mkfile.old
 dkms.conf
 
 run*.sh
+clean*.sh
 z.php
 .*.swp
 *.swp
