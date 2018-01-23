@@ -104,8 +104,27 @@ cd php-mdbm/src/
 $PHP_INSTALLED_PATH/bin/phpize
 ./configure --with-php-config=$PHP_INSTALLED_PATH/bin/php-config --with-mdbm=/usr/local/mdbm/
 make
-make test TESTS='-q -m'
+#make test TESTS='-q -m'
+#make test TESTS='-q'
 make install
+```
+
+##### Configuration
+
+```shell
+echo "extension=mdbm.so" >> php.ini
+```
+
+##### Check
+
+```shell
+$PHP_INSTALLED_PATH/bin/php -i | fgrep -i mdbm
+...
+mdbm
+MDBM Support => enable
+MDBM API Version => 4
+PHP MDBM Version => 0.1.0
+...
 ```
 
 ## Example
