@@ -981,7 +981,7 @@ PHP_FUNCTION(mdbm_set_log_filename) {
     _ZEND_STR_LEN path_len = 0;
     int rv = -1;
 
-    if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "p", &pfilepath,&path_len)) {
+    if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &pfilepath,&path_len)) {
         RETURN_FALSE;
     }
 
@@ -1000,7 +1000,7 @@ PHP_FUNCTION(mdbm_open) {
     MDBM *pmdbm = NULL;
     php_mdbm_open *mdbm_link = NULL;
 
-    if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "pll|ll", &pfilepath,&path_len, &flags, &mode, &psize, &presize)) {
+    if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sll|ll", &pfilepath,&path_len, &flags, &mode, &psize, &presize)) {
         RETURN_FALSE;
     }
 
@@ -1819,7 +1819,7 @@ PHP_FUNCTION(mdbm_delete_lockfiles) {
 
     char fn[PATH_MAX] = {0x00};
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "p", &pdbfn, &dbfn_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &pdbfn, &dbfn_len) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }

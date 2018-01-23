@@ -1,6 +1,6 @@
 #!/bin/bash
 CMD_PHP=`which php`
-CNT=$(find ./tests/ -name "*.mem" | wc -l)
+CNT=$(find ./tests/ -name "*.log" -o -name "*.mem" -o -name "*.core*" | wc -l)
 if [ $CNT -gt 0 ]; then
     echo "[*] FAIL : $CNT";
     ls -al ./tests/
