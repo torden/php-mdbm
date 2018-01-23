@@ -51,7 +51,7 @@ Unfortunately, the following list are not supported on now.
 |mdbm_stat_all_page|V3 not supported|There is only a V2 implementation. V3 not currently supported.|
 |mdbm_stat_header|V3 not supported|There is only a V2 implementation. V3 not currently supported.|
 
-## Support two compatibility version
+## Support Two Versions Compatibility
 
 ### PHP
 
@@ -133,12 +133,14 @@ See the [documentation](https://github.com/torden/php-mdbm/blob/master/README.ap
 
 ## Benchmark
 
+The following is results of PHP-mdbm vs PHP SQlite3 benchmarks for simple data storing and random fetching.
+
 See the [Source Code](https://github.com/torden/php-mdbm/tree/master/benchmark).
 
-### Command
+### Prepare for a Benchmark
 
 ```
-cd php-mdbm/benchmark/
+cd php-mdbm/src/benchmark/
 composer install
 ```
 
@@ -160,9 +162,15 @@ composer install
 |OS|Ubuntu 17.10.1 (Artful Aardvark)|
 |CPU|2 vCore|
 |RAM|8G|
-|PHP|7.0.26|
-|mdbm|master branch|
-|php-mdbm|v0.5.0|
+
+#### Software
+
+|Type|Version|Comment|
+|---|---|---|
+|PHP|7.0.26|---|
+|php-mdbm|v0.1.0|---|
+|mdbm|master branch|---|
+|SQLite3|3.19.3|Async, Transaction, journal_mode = wal|
 
 ### Simple INSERTs
 
@@ -234,6 +242,62 @@ php src/mdbm_simple_preload_fetch.php -live
    Total 7 taken                             01-21 01:40:11     34.83  s      0.00 KB      2.00 MB
 ```
 
+## SQLite3
+
+### Simple INSERTs
+
+```
+php src/sqlite3_simple_store.php -live
+```
+
+```
+PRAGMA synchronous=OFF;
+pragma journal_mode = wal;
+Transaction(BEGIN,COMMIT)
+
+ Created by B. van Hoekelen version 2.3.2 PHP v7.0.26
+ Max memory 128M, max execution time unlimited on 2018-01-22 00:44:56
+
+   Label                                                         Time        Memory        Peak
+---------------------------------------------------------------------------------------------------
+ > Calibrate point                                               4.05 μs |    0.00 KB |    2.00 MB
+ > sqlite3 insert(number, number) :: 100,000                    761.78 ms |    0.00 KB |    2.00 MB
+ > sqlite3 insert(string, string) :: 100,000                      1.17  s |    0.00 KB |    2.00 MB
+ > sqlite3 insert(number, number) :: 1,000,000                    7.93  s |    0.00 KB |    2.00 MB
+ > sqlite3 insert(string, string) :: 1,000,000                   12.29  s |    0.00 KB |    2.00 MB
+ > sqlite3 insert(number, number):: 10,000,000                   80.24  s |    0.00 KB |    2.00 MB
+ > sqlite3 insert(string, string) :: 10,000,000                 127.54  s |    0.00 KB |    2.00 MB
+---------------------------------------------------------------------------------------------------
+   Total 7 taken                             01-22 01:00:25    229.93  s      0.00 KB      2.00 MB
+```
+
+
+### Simple Random FETCHs
+
+```
+php src/sqlite3_simple_fetch.php -live
+```
+
+```
+PRAGMA synchronous=OFF;
+pragma journal_mode = wal;
+
+ Created by B. van Hoekelen version 2.3.2 PHP v7.0.26
+ Max memory 128M, max execution time unlimited on 2018-01-22 01:23:53
+
+   Label                                                         Time        Memory        Peak
+---------------------------------------------------------------------------------------------------
+ > Calibrate point                                               4.05 μs |    0.00 KB |    2.00 MB
+ > sqlite3 random fetch(number) :: 100,000                       2.16  s |    0.00 KB |    2.00 MB
+ > sqlite3 random fetch(string) :: 100,000                       3.16  s |    0.00 KB |    2.00 MB
+ > sqlite3 random fetch(number) :: 1,000,000                    25.94  s |    0.00 KB |    2.00 MB
+ > sqlite3 random fetch(string) :: 1,000,000                    34.84  s |    0.00 KB |    2.00 MB
+ > sqlite3 random fetch(number):: 10,000,000                   275.47  s |    0.00 KB |    2.00 MB
+ > sqlite3 random fetch(string) :: 10,000,000                  397.42  s |    0.00 KB |    2.00 MB
+---------------------------------------------------------------------------------------------------
+   Total 7 taken                             01-22 01:36:12    738.99  s      0.00 KB      2.00 MB
+```
+
 ## Link
 
 - [Yahoo! MDBM](https://github.com/yahoo/mdbm)
@@ -246,8 +310,8 @@ php src/mdbm_simple_preload_fetch.php -live
 - [Packagist](https://packagist.org/packages/torden/php-mdbm)
 - [Go-mdbm](https://github.com/torden/go-mdbm)
 - [Py-mdbm](https://github.com/torden/py-mdbm)
+- [Upgrading PHP extensions from PHP5 to NG](https://wiki.php.net/phpng-upgrading)
 
 ---
 
 *Please feel free. I hope it is helpful for you.*
-
