@@ -1,6 +1,6 @@
 language: php
 sudo: required
-dist: xenial
+dist: precise
 php:
     - 5.3
     - 5.4
