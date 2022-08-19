@@ -11,7 +11,7 @@ jobs:
       run: |
         sudo apt update -qq -y
         DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends tzdata
-        sudo apt install -qq -y openssl libcppunit-dev libreadline7 libreadline-dev valgrind libmodule-install-perl gdb php-dev
+        sudo apt install -qq -y openssl libcppunit-dev libreadline7 libreadline-dev valgrind libmodule-install-perl gdb php-dev git
         curl -ss -L -O https://github.com/torden/go-mdbm/raw/master/pkg/ubuntu/mdbm-4.13.0-Bionic_Beaver.deb
         sudo dpkg -i mdbm-4.13.0-Bionic_Beaver.deb
         cd src
@@ -21,7 +21,7 @@ jobs:
         /usr/lib/php
         EOF
         sudo ldconfig -v
-        sudo phpize
-        sudo ./configure --with-php-config=/usr/bin/php-config --with-mdbm=/usr/local/mdbm/
-        sudo make -j2
-        sudo make test TESTS="-q -v -m"
+        phpize
+        ./configure --with-php-config=/usr/bin/php-config --with-mdbm=/usr/local/mdbm/
+        make -j2
+        make test TESTS="-q -v -m"
