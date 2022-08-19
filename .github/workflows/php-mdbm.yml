@@ -14,6 +14,7 @@ jobs:
         sudo apt install -qq -y openssl libcppunit-dev libreadline7 libreadline-dev valgrind libmodule-install-perl gdb php-dev
         curl -ss -L -O https://github.com/torden/go-mdbm/raw/master/pkg/ubuntu/mdbm-4.13.0-Bionic_Beaver.deb
         sudo dpkg -i mdbm-4.13.0-Bionic_Beaver.deb
+        cd src
         phpize
         ./configure --with-php-config=`which php-config` --with-mdbm=/usr/local/mdbm/
         make -j2
