@@ -16,6 +16,4 @@ jobs:
         sudo dpkg -i mdbm-4.13.0-Bionic_Beaver.deb
         cd src
         phpize
-        ./configure --with-php-config=`which php-config` --with-mdbm=/usr/local/mdbm/
-        make -j2
-        make test TESTS="-q -v -m"
+        php-config
