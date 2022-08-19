@@ -15,6 +15,11 @@ jobs:
         curl -ss -L -O https://github.com/torden/go-mdbm/raw/master/pkg/ubuntu/mdbm-4.13.0-Bionic_Beaver.deb
         sudo dpkg -i mdbm-4.13.0-Bionic_Beaver.deb
         cd src
+        dd of=/etc/ld.so.conf <<EOF
+        include /etc/ld.so.conf.d/*.conf
+        /usr/local/mdbm/lib64
+        /usr/lib/php
+        EOF
         phpize
         ./configure --with-php-config=/usr/bin/php-config --with-mdbm=/usr/local/mdbm/
         make -j2
