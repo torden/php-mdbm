@@ -20,7 +20,8 @@ jobs:
         /usr/local/mdbm/lib64
         /usr/lib/php
         EOF
-        phpize
-        ./configure --with-php-config=/usr/bin/php-config --with-mdbm=/usr/local/mdbm/
-        make -j2
-        make test TESTS="-q -v -m"
+        sudo ldconfig -v
+        sudo phpize
+        sudo ./configure --with-php-config=/usr/bin/php-config --with-mdbm=/usr/local/mdbm/
+        sudo make -j2
+        sudo make test TESTS="-q -v -m"
