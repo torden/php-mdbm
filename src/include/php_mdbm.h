@@ -27,6 +27,9 @@ extern zend_module_entry mdbm_module_entry;
 #define FALSE 0
 #endif
 
+#ifndef PHP_FE_END
+#define PHP_FE_END {NULL, NULL, NULL}
+#endif
 
 #define MDBM_LOG_OFF            -1
 #define MDBM_LOG_EMERGENCY      LOG_EMERG
