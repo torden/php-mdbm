@@ -8,7 +8,7 @@
 
 |Build Stats|PHP-mdbm ver.|License|Y! mdbm ver.|
 |:-:|:-:|:-:|:-:|
-[![Build Status](https://github.com/torden/php-mdbm/actions/workflows/php-mdbm.yml/badge.svg)](https://github.com/torden/php-mdbm/actions)|[![GitHub version](https://badge.fury.io/gh/torden%2Fphp-mdbm.svg)](https://badge.fury.io/gh/torden%2Fphp-mdbm)| [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)|[![GitHub version](https://img.shields.io/github/v/release/torden/go-strutil)](https://github.com/torden/go-strutil)|
+[![Build Status](https://github.com/torden/php-mdbm/actions/workflows/php-mdbm.yml/badge.svg)](https://github.com/torden/php-mdbm/actions)|[![GitHub version](https://img.shields.io/github/v/release/torden/go-strutil)](https://github.com/torden/go-strutil)| [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)|[![GitHub version](https://img.shields.io/github/v/release/yahoo/mdbm)](https://github.com/yahoo/mdbm)|
 
 ## Table of Contents
 
