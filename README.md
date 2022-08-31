@@ -70,9 +70,7 @@ Unfortunately, the following list are not supported on now.
 ## Install
 
 ### MDBM
-
-- Ubuntu : See the [pre-build packages for ubuntu](https://github.com/torden/go-mdbm/tree/master/pkg)
-- RHEL (CentOS) : See the [documentation for](https://github.com/yahoo/mdbm/blob/master/README.build) build and install
+- [MDBM Packages](https://github.com/torden/mdbm)
 
 ### php-mdbm
 
@@ -308,6 +306,7 @@ pragma journal_mode = wal;
 - [DBM](https://en.wikipedia.org/wiki/Dbm)
 - [MDBM::Macro(const)](http://yahoo.github.io/mdbm/api/mdbm_8h.html)
 - [Packagist](https://packagist.org/packages/torden/php-mdbm)
+- [MDBM Packages](https://github.com/torden/mdbm)
 - [Go-mdbm](https://github.com/torden/go-mdbm)
 - [Py-mdbm](https://github.com/torden/py-mdbm)
 - [Upgrading PHP extensions from PHP5 to NG](https://wiki.php.net/phpng-upgrading)
