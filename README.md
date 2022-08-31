@@ -91,7 +91,7 @@ git clone https://github.com/torden/php-mdbm
 ##### Or Download the tarball [(tag or release](https://github.com/torden/php-mdbm/releases))
 
 ```shell
-wget https://github.com/torden/go-mdbm/archive/vX.X.X.tar.gz
+wget https://github.com/torden/php-mdbm/archive/vX.X.X.tar.gz
 tar xvzf vX.X.X.tar.gz
 ```
 
