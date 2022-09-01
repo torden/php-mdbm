@@ -11,7 +11,7 @@ jobs:
       run: |
         sudo apt update -qq -y
         DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends tzdata
-        sudo apt install -qq -y openssl libcppunit-dev libreadline7 libreadline-dev valgrind libmodule-install-perl gdb php-dev git
+        sudo apt install -qq -y openssl zlib1g libssl1.1 libcppunit-dev libreadline7  libtinfo5 libstdc++6 libc6 libreadline-dev valgrind libmodule-install-perl gdb php-dev build-essential
         curl -ss -L -O https://github.com/torden/go-mdbm/raw/master/pkg/ubuntu/mdbm-4.13.0-Bionic_Beaver.deb
         sudo dpkg -i mdbm-4.13.0-Bionic_Beaver.deb
         cd src
