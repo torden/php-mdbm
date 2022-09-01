@@ -58,7 +58,8 @@ Unfortunately, the following list are not supported on now.
 |*Version*|*Support*|*Test*|
 |---|---|---|
 |5.2.x ~ 5.6.x|yes|always|
-|7.0 ~ 7.2|yes|always|
+|7.x|yes|always|
+|8.x|yes|always|
 
 ### MDBM
 
