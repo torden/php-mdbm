@@ -39,4 +39,5 @@ jobs:
         phpize
         ./configure --with-php-config=`which php-config` --with-mdbm=/usr/local/mdbm/
         make
-        make test TESTS="-q -v -m"
+        # make test TESTS="-q -v -m"
+        make test TESTS="-q -v"
