@@ -20,8 +20,8 @@ jobs:
         /usr/local/mdbm/lib64
         /usr/lib/php
         EOF
-        sudo ldconfig -v
+        sudo ldconfig
         php -v
         phpize
         ./configure --with-php-config=`which php-config` --with-mdbm=/usr/local/mdbm/
-        find /usr/local/mdbm/
+        make -j2
