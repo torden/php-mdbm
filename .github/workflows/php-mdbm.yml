@@ -21,7 +21,8 @@ jobs:
         /usr/lib/php
         EOF
         sudo ldconfig -v
+        php -v
         phpize
         ./configure --with-php-config=/usr/bin/php-config --with-mdbm=/usr/local/mdbm/
-        gcc -v
-        g++ -v
+        make
+        
