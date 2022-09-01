@@ -24,4 +24,4 @@ jobs:
         php -v
         phpize
         ./configure --with-php-config=`which php-config` --with-mdbm=/usr/local/mdbm/
-        ls
+        make
