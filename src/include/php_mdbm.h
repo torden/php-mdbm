@@ -1,12 +1,8 @@
 /*
   +----------------------------------------------------------------------+
-  | PHP Version 5,7                                                      |
+  | Support PHP Version 5,7,8                                            |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2017 The PHP Group                                |
-  +----------------------------------------------------------------------+
-  | http://www.php.net/license/3_01.txt                                  |
-  +----------------------------------------------------------------------+
-  | Author: torden <https://github.com/torden/>                          |
+  | Author: torden <https://github.com/torden/php-mdbm>                  |
   +----------------------------------------------------------------------+
 */
 
@@ -29,6 +25,22 @@ extern zend_module_entry mdbm_module_entry;
 
 #ifndef PHP_FE_END
 #define PHP_FE_END {NULL, NULL, NULL}
+#endif
+
+#if PHP_VERSION_ID >= 80000
+#define TSRMLS_FETCH() 
+#define ERROR_DOCREF(...) php_error_docref(NULL, __VA_ARGS__)
+#define PARSE_PARAMS(...) zend_parse_parameters(ZEND_NUM_ARGS(), __VA_ARGS__)
+#else
+
+#if PHP_VERSION_ID < 70000
+    #define TSRMLS_FETCH() TSRMLS_FETCH()
+#else
+    #define TSRMLS_FETCH() 
+#endif
+
+#define ERROR_DOCREF(...) php_error_docref(NULL TSRMLS_CC, __VA_ARGS__)
+#define PARSE_PARAMS(...) zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, __VA_ARGS__)
 #endif
 
 #define MDBM_LOG_OFF            -1
