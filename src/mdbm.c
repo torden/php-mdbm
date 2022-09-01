@@ -999,17 +999,17 @@ PHP_FUNCTION(mdbm_open) {
 
     //protect : sigfault
     if (flags == (flags | MDBM_O_CREAT) && flags == (flags | MDBM_PROTECT)) {
-        ERROR_DOCREF(E_ERROR, "failed to open the MDBM, not support create flags with MDBM_PROTECT");
+        ERROR_DOCREF(E_WARNING, "failed to open the MDBM, not support create flags with MDBM_PROTECT");
         RETURN_FALSE;
     }
 
     if (flags == (flags | MDBM_O_ASYNC) && flags == (flags | MDBM_O_FSYNC)) {
-        ERROR_DOCREF(E_ERROR, "failed to open the MDBM, not support mixed sync flags (MDBM_O_FSYNC, MDBM_O_ASYNC)");
+        ERROR_DOCREF(E_WARNING, "failed to open the MDBM, not support mixed sync flags (MDBM_O_FSYNC, MDBM_O_ASYNC)");
         RETURN_FALSE;
     }
 
     if (flags == (flags | MDBM_O_RDONLY) && flags == (flags | MDBM_O_WRONLY)) {
-        ERROR_DOCREF(E_ERROR, "failed to open the MDBM, not support mixed access flags (MDBM_O_RDONLY, MDBM_O_WRONLY, MDBM_O_RDWR)");
+        ERROR_DOCREF(E_WARNING, "failed to open the MDBM, not support mixed access flags (MDBM_O_RDONLY, MDBM_O_WRONLY, MDBM_O_RDWR)");
         RETURN_FALSE;
     }
 
@@ -1022,7 +1022,7 @@ PHP_FUNCTION(mdbm_open) {
     //create the link
     mdbm_link = (php_mdbm_open *) ecalloc(1, sizeof(php_mdbm_open));
     if (!mdbm_link) {
-        ERROR_DOCREF(E_ERROR, "Out of memory while allocating memory for a MDBM Resource link");
+        ERROR_DOCREF(E_WARNING, "Out of memory while allocating memory for a MDBM Resource link");
         RETURN_FALSE;
     }
 
@@ -1035,7 +1035,7 @@ PHP_FUNCTION(mdbm_open) {
     pmdbm = mdbm_open(pfilepath, (int)flags, (int)mode, (int)psize, (int)presize);
     _CAPTURE_END();
     if (!pmdbm) {
-        ERROR_DOCREF(E_ERROR, "failed to open the mdbm");
+        ERROR_DOCREF(E_WARNING, "failed to open the mdbm");
         RETURN_FALSE;
     }
 
