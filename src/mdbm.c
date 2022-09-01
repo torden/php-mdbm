@@ -1,12 +1,8 @@
 /*
   +----------------------------------------------------------------------+
-  | PHP Version 5,7                                                      |
+  | Support PHP Version 5,7,8                                            |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2015 The PHP Group                                |
-  +----------------------------------------------------------------------+
-  | http://www.php.net/license/3_01.txt                                  |
-  +----------------------------------------------------------------------+
-  | Author: torden <https://github.com/torden/>                          |
+  | Author: torden <https://github.com/torden/php-mdbm>                  |
   +----------------------------------------------------------------------+
 */
 
@@ -64,7 +60,7 @@ typedef char* _ZEND_STRING_PTR;
 
     #define _FETCH_RES(mdbm_link_index, id) {\
         if (mdbm_link_index == NULL) {\
-            php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");\
+            ERROR_DOCREF(E_ERROR, "not found the mdbm resource");\
             RETURN_FALSE;\
         }\
         ZEND_FETCH_RESOURCE(mdbm_link, php_mdbm_open*, &mdbm_link_index, id, LE_MDBM_NAME, le_link);\
@@ -94,7 +90,7 @@ typedef zend_string* _ZEND_STRING_PTR;
     #define _FETCH_RES(mdbm_link_index, id) {\
         mdbm_link = (php_mdbm_open *)zend_fetch_resource(Z_RES_P(mdbm_link_index), LE_MDBM_NAME, le_link);\
         if (mdbm_link == NULL) {\
-            php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");\
+            ERROR_DOCREF(E_ERROR, "not found the mdbm resource");\
             RETURN_FALSE;\
         }\
     }
@@ -119,14 +115,14 @@ typedef zend_string* _ZEND_STRING_PTR;
 
 #define _CHECK_MDBM_STR_MAXLEN(key_len) {\
     if (key_len > MDBM_KEYLEN_MAX) {\
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "maximum key length exceeded, (%ld > %ld)", (long)key_len, (long)MDBM_KEYLEN_MAX);\
+        ERROR_DOCREF(E_ERROR, "maximum key length exceeded, (%ld > %ld)", (long)key_len, (long)MDBM_KEYLEN_MAX);\
         RETURN_FALSE;\
     }\
 }
 
 #define _CHECK_VALLEN(val_len) {\
     if (val_len > MDBM_VALLEN_MAX) {\
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "maximum value length exceeded, (%ld > %ld)", (long)val_len, (long)MDBM_VALLEN_MAX);\
+        ERROR_DOCREF(E_ERROR, "maximum value length exceeded, (%ld > %ld)", (long)val_len, (long)MDBM_VALLEN_MAX);\
         RETURN_FALSE;\
     }\
 }
@@ -156,29 +152,29 @@ typedef zend_string* _ZEND_STRING_PTR;
 
 #define CHECK_OVERFLOW(org, limit_min, limit_max) {\
     if (limit_min == 0 && org < 0) {\
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` was less than the minimum allowed value of 0", #org);\
+        ERROR_DOCREF(E_ERROR, "The parameter value of `%s` was less than the minimum allowed value of 0", #org);\
         RETURN_FALSE;\
     }\
     if (org > limit_max) {\
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` was greater than the maxium allowed value of %lld", #org, (long long)limit_max);\
+        ERROR_DOCREF(E_ERROR, "The parameter value of `%s` was greater than the maxium allowed value of %lld", #org, (long long)limit_max);\
         RETURN_FALSE;\
     }\
     if (org < limit_min) {\
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` was less than the minimum allowed value of %lld", #org, (long long)limit_min);\
+        ERROR_DOCREF(E_ERROR, "The parameter value of `%s` was less than the minimum allowed value of %lld", #org, (long long)limit_min);\
         RETURN_FALSE;\
     }\
 }
 
 #define CHECK_EMPTY_STR(val, len) {\
     if (len < 1) {\
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` was empty", #val);\
+        ERROR_DOCREF(E_ERROR, "The parameter value of `%s` was empty", #val);\
         RETURN_FALSE;\
     }\
 }
 
 #define CHECK_EMPTY_STR_NAME(name, var, len) {\
     if (len < 1 || var == NULL) {\
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` was empty", name);\
+        ERROR_DOCREF(E_ERROR, "The parameter value of `%s` was empty", name);\
         RETURN_FALSE;\
     }\
 }
@@ -187,7 +183,6 @@ typedef zend_string* _ZEND_STRING_PTR;
 
 #if PHP_VERSION_ID < 70000
 static void _close_mdbm_link(zend_rsrc_list_entry *rsrc TSRMLS_DC) {
-
     php_mdbm_open *link = (php_mdbm_open *)rsrc->ptr;
     if (link == NULL) {
         return;
@@ -204,9 +199,7 @@ static void _close_mdbm_link(zend_rsrc_list_entry *rsrc TSRMLS_DC) {
 }
 
 #else
-
-static void _close_mdbm_link(zend_resource *rsrc TSRMLS_DC) {
-
+static void _close_mdbm_link(zend_resource *rsrc) {
     php_mdbm_open *link = (php_mdbm_open *)rsrc->ptr;
     if (link == NULL) {
         return;
@@ -242,7 +235,7 @@ static inline char* copy_strptr(char *dptr, int dsize) {
 
     pretval = emalloc(dsize+1);
     if (pretval == NULL) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory");
+        ERROR_DOCREF(E_ERROR, "Out of memory while allocating memory");
         return NULL;
     }
 
@@ -251,7 +244,7 @@ static inline char* copy_strptr(char *dptr, int dsize) {
     //copy
     strncpy(pretval, dptr, dsize);
     if (pretval == NULL) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to strncpy");
+        ERROR_DOCREF(E_ERROR, "failed to strncpy");
         return NULL;
     }
 
@@ -268,7 +261,7 @@ static inline _ZEND_STRING_PTR copy_mdbmstr_to_zendstring(char *dptr, int dsize)
 #if PHP_VERSION_ID < 70000
     pretval = emalloc(dsize+1);
     if (pretval == NULL) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory");
+        ERROR_DOCREF(E_ERROR, "Out of memory while allocating memory");
         return NULL;
     }
 
@@ -277,13 +270,13 @@ static inline _ZEND_STRING_PTR copy_mdbmstr_to_zendstring(char *dptr, int dsize)
     //copy
     strncpy(pretval, dptr, dsize);
     if (pretval == NULL) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to strncpy");
+        ERROR_DOCREF(E_ERROR, "failed to strncpy");
         return NULL;
     }
 #else
     pretval = zend_string_init(dptr, dsize, 0);
     if (pretval == NULL) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory");
+        ERROR_DOCREF(E_ERROR, "Out of memory while allocating memory");
         return NULL;
     }
 #endif
@@ -307,13 +300,13 @@ static inline int iter_handler(php_mdbm_open *mdbm_link, MDBM_ITER **piter,  zva
         TSRMLS_FETCH();
         hash_arr = HASH_OF(arr);
         if ( hash_arr == NULL || zend_hash_num_elements(hash_arr) < 2 ) {
-            php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a not valid parameter: iter");
+            ERROR_DOCREF(E_ERROR, "Error - There was a not valid parameter: iter");
             return -1;
         }
 
 #if PHP_VERSION_ID < 70000
         if (zend_hash_find(hash_arr, HASHKEY_PAGENO, strlen(HASHKEY_PAGENO) + 1, (void **) &item) == FAILURE) {
-            php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_PAGENO);
+            ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_PAGENO);
             return -2;
         } else {
             convert_to_long_ex(item);
@@ -321,7 +314,7 @@ static inline int iter_handler(php_mdbm_open *mdbm_link, MDBM_ITER **piter,  zva
         }
 
         if (zend_hash_find(hash_arr, HASHKEY_NEXT, strlen(HASHKEY_NEXT) + 1, (void **) &item) == FAILURE) {
-            php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_NEXT);
+            ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_NEXT);
             return -2;
         } else {
             convert_to_long_ex(item);
@@ -334,17 +327,17 @@ static inline int iter_handler(php_mdbm_open *mdbm_link, MDBM_ITER **piter,  zva
             in_pageno = Z_LVAL_P(item);
 
             if (in_pageno < 0) {
-                php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` was greater than the maxium allowed value of %lld", HASHKEY_PAGENO, UINT32_MAX);
+                ERROR_DOCREF(E_ERROR, "The parameter value of `%s` was greater than the maxium allowed value of %u", HASHKEY_PAGENO, UINT32_MAX);
                 return -2;
             }
 
             if (in_pageno > UINT32_MAX) {
-                php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` was less than the minimum allowed value of 0", HASHKEY_PAGENO);
+                ERROR_DOCREF(E_ERROR, "The parameter value of `%s` was less than the minimum allowed value of 0", HASHKEY_PAGENO);
                 return -2;
             }    
 
         } else {
-            php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_PAGENO);
+            ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_PAGENO);
             return -2;
         }
 
@@ -354,17 +347,17 @@ static inline int iter_handler(php_mdbm_open *mdbm_link, MDBM_ITER **piter,  zva
             in_next = Z_LVAL_P(item);
 
             if (in_next < 0) {
-                php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` was greater than the maxium allowed value of %ld", HASHKEY_NEXT, INT_MAX);
+                ERROR_DOCREF(E_ERROR, "The parameter value of `%s` was greater than the maxium allowed value of %d", HASHKEY_NEXT, INT_MAX);
                 return -2;
             }
 
             if (in_next > INT_MAX) {
-                php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `%s` was less than the minimum allowed value of %ld", HASHKEY_NEXT, INT_MIN);
+                ERROR_DOCREF(E_ERROR, "The parameter value of `%s` was less than the minimum allowed value of %d", HASHKEY_NEXT, INT_MIN);
                 return -2;
             }    
 
         } else {
-            php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_NEXT);
+            ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter: iter must have a %s field", HASHKEY_NEXT);
             return -2;
         }
 #endif
@@ -924,7 +917,7 @@ PHP_FUNCTION(mdbm_log_minlevel) {
 
     _ZEND_LONG flag = 0;
 
-    if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &flag)) {
+    if (FAILURE == PARSE_PARAMS("l", &flag)) {
         RETURN_FALSE;
     }
 
@@ -940,12 +933,12 @@ PHP_FUNCTION(mdbm_select_log_plugin) {
     int rv = -1;
 	char buf[10] = {0x00,};
 
-    if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &flag)) {
+    if (FAILURE == PARSE_PARAMS("l", &flag)) {
         RETURN_FALSE;
     }
 
     if (flag < MDBM_LOG_TO_STDERR || flag > MDBM_LOG_TO_SYSLOG) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : flag(=%ld)", flag);
+        ERROR_DOCREF(E_ERROR, "Error - there was a not support parameter value : flag(=%ld)", flag);
         RETURN_FALSE;
     }
 
@@ -966,7 +959,7 @@ PHP_FUNCTION(mdbm_select_log_plugin) {
 			break;
 
 		default:
-            php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : flag(=%ld)", flag);
+            ERROR_DOCREF(E_ERROR, "Error - there was a not support parameter value : flag(=%ld)", flag);
             RETURN_FALSE;
             break;
 	}
@@ -981,7 +974,7 @@ PHP_FUNCTION(mdbm_set_log_filename) {
     _ZEND_STR_LEN path_len = 0;
     int rv = -1;
 
-    if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &pfilepath,&path_len)) {
+    if (FAILURE == PARSE_PARAMS("s", &pfilepath,&path_len)) {
         RETURN_FALSE;
     }
 
@@ -1000,23 +993,23 @@ PHP_FUNCTION(mdbm_open) {
     MDBM *pmdbm = NULL;
     php_mdbm_open *mdbm_link = NULL;
 
-    if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sll|ll", &pfilepath,&path_len, &flags, &mode, &psize, &presize)) {
+    if (FAILURE == PARSE_PARAMS("sll|ll", &pfilepath,&path_len, &flags, &mode, &psize, &presize)) {
         RETURN_FALSE;
     }
 
     //protect : sigfault
     if (flags == (flags | MDBM_O_CREAT) && flags == (flags | MDBM_PROTECT)) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to open the MDBM, not support create flags with MDBM_PROTECT");
+        ERROR_DOCREF(E_ERROR, "failed to open the MDBM, not support create flags with MDBM_PROTECT");
         RETURN_FALSE;
     }
 
     if (flags == (flags | MDBM_O_ASYNC) && flags == (flags | MDBM_O_FSYNC)) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to open the MDBM, not support mixed sync flags (MDBM_O_FSYNC, MDBM_O_ASYNC)");
+        ERROR_DOCREF(E_ERROR, "failed to open the MDBM, not support mixed sync flags (MDBM_O_FSYNC, MDBM_O_ASYNC)");
         RETURN_FALSE;
     }
 
     if (flags == (flags | MDBM_O_RDONLY) && flags == (flags | MDBM_O_WRONLY)) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to open the MDBM, not support mixed access flags (MDBM_O_RDONLY, MDBM_O_WRONLY, MDBM_O_RDWR)");
+        ERROR_DOCREF(E_ERROR, "failed to open the MDBM, not support mixed access flags (MDBM_O_RDONLY, MDBM_O_WRONLY, MDBM_O_RDWR)");
         RETURN_FALSE;
     }
 
@@ -1029,7 +1022,7 @@ PHP_FUNCTION(mdbm_open) {
     //create the link
     mdbm_link = (php_mdbm_open *) ecalloc(1, sizeof(php_mdbm_open));
     if (!mdbm_link) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory for a MDBM Resource link");
+        ERROR_DOCREF(E_ERROR, "Out of memory while allocating memory for a MDBM Resource link");
         RETURN_FALSE;
     }
 
@@ -1042,7 +1035,7 @@ PHP_FUNCTION(mdbm_open) {
     pmdbm = mdbm_open(pfilepath, (int)flags, (int)mode, (int)psize, (int)presize);
     _CAPTURE_END();
     if (!pmdbm) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to open the mdbm");
+        ERROR_DOCREF(E_ERROR, "failed to open the mdbm");
         RETURN_FALSE;
     }
 
@@ -1068,8 +1061,8 @@ PHP_FUNCTION(mdbm_dup_handle) {
     MDBM *pnew_mdbm = NULL;
     _ZEND_LONG flags = 0; // flags Reserved for future use
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1080,14 +1073,14 @@ PHP_FUNCTION(mdbm_dup_handle) {
     pnew_mdbm = mdbm_dup_handle(mdbm_link->pmdbm, flags); //flags Reserved for future use
     _CAPTURE_END();
     if (pnew_mdbm == NULL) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to duplicate an existing database handle");
+        ERROR_DOCREF(E_ERROR, "failed to duplicate an existing database handle");
         RETURN_FALSE;
     }
 
     //create the link
     mdbm_new_link = (php_mdbm_open *) safe_emalloc(sizeof(php_mdbm_open), 1, 0);
     if (!mdbm_link) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory for a MDBM Resource link");
+        ERROR_DOCREF(E_ERROR, "Out of memory while allocating memory for a MDBM Resource link");
     }
 
 
@@ -1108,8 +1101,8 @@ PHP_FUNCTION(mdbm_close) {
 
     int id = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1137,8 +1130,8 @@ PHP_FUNCTION(mdbm_close_fd) {
 
     int id = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1167,8 +1160,8 @@ PHP_FUNCTION(mdbm_truncate) {
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1185,8 +1178,8 @@ PHP_FUNCTION(mdbm_purge) {
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1207,8 +1200,8 @@ PHP_FUNCTION(mdbm_replace_db) {
     char *pnewfile = NULL;
     _ZEND_STR_LEN newfile_len = 0;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &mdbm_link_index, &pnewfile, &newfile_len) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rs", &mdbm_link_index, &pnewfile, &newfile_len) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1235,8 +1228,8 @@ PHP_FUNCTION(mdbm_replace_file) {
     char *pnewfile = NULL;
     _ZEND_STR_LEN newfile_len = 0;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &poldfile, &oldfile_len, &pnewfile, &newfile_len) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("ss", &poldfile, &oldfile_len, &pnewfile, &newfile_len) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1259,8 +1252,8 @@ PHP_FUNCTION(mdbm_pre_split) {
     int id = -1;
     _ZEND_LONG pages = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &pages) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rl", &mdbm_link_index, &pages) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1289,8 +1282,8 @@ PHP_FUNCTION(mdbm_fcopy) {
     char *pnewfile = NULL;
     _ZEND_STR_LEN newfile_len = 0;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl|l", &mdbm_link_index, &pnewfile, &newfile_len, &mode, &flags) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rsl|l", &mdbm_link_index, &pnewfile, &newfile_len, &mode, &flags) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1303,7 +1296,7 @@ PHP_FUNCTION(mdbm_fcopy) {
 
     //check the flags
     if (flags & ~MDBM_COPY_LOCK_ALL) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : flags(=%ld)", flags);
+        ERROR_DOCREF(E_ERROR, "Error - there was a not support parameter value : flags(=%ld)", flags);
         RETURN_FALSE;
     }
 
@@ -1312,7 +1305,7 @@ PHP_FUNCTION(mdbm_fcopy) {
 
     int fd = open(pnewfile, O_RDWR | O_CREAT | O_TRUNC, (mode_t)mode);
     if(fd == -1) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error : does not create a tempfile(=%s), err=%s", pnewfile, strerror(errno));
+        ERROR_DOCREF(E_ERROR, "Error : does not create a tempfile(=%s), err=%s", pnewfile, strerror(errno));
         RETURN_FALSE;
     } 
 
@@ -1331,8 +1324,8 @@ PHP_FUNCTION(mdbm_sync) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1353,8 +1346,8 @@ PHP_FUNCTION(mdbm_fsync) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1375,8 +1368,8 @@ PHP_FUNCTION(mdbm_get_lockmode) {
     int id = -1;
     uint32_t rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1397,8 +1390,8 @@ PHP_FUNCTION(mdbm_lock) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1419,8 +1412,8 @@ PHP_FUNCTION(mdbm_trylock) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1446,8 +1439,8 @@ PHP_FUNCTION(mdbm_plock) {
     _ZEND_LONG flags = -1;
     datum datum_key = {0x00,};
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1483,8 +1476,8 @@ PHP_FUNCTION(mdbm_tryplock) {
     _ZEND_LONG flags = -1;
     datum datum_key = {0x00,};
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1515,8 +1508,8 @@ PHP_FUNCTION(mdbm_lock_shared) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1537,8 +1530,8 @@ PHP_FUNCTION(mdbm_trylock_shared) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1564,8 +1557,8 @@ PHP_FUNCTION(mdbm_lock_smart) {
     _ZEND_LONG flags = -1;
     datum datum_key = {0x00,};
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1601,8 +1594,8 @@ PHP_FUNCTION(mdbm_trylock_smart) {
     _ZEND_LONG flags = -1;
     datum datum_key = {0x00,};
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1633,8 +1626,8 @@ PHP_FUNCTION(mdbm_unlock) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1660,8 +1653,8 @@ PHP_FUNCTION(mdbm_punlock) {
     _ZEND_LONG flags = -1;
     datum datum_key = {0x00,};
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1697,8 +1690,8 @@ PHP_FUNCTION(mdbm_unlock_smart) {
     _ZEND_LONG flags = -1;
     datum datum_key = {0x00,};
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rsl", &mdbm_link_index, &pkey, &key_len, &flags) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1730,8 +1723,8 @@ PHP_FUNCTION(mdbm_islocked) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1747,7 +1740,7 @@ PHP_FUNCTION(mdbm_islocked) {
         RETURN_TRUE;
     }
  
-    php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to check the return value of mdbm_islocked");
+    ERROR_DOCREF(E_ERROR, "failed to check the return value of mdbm_islocked");
     RETURN_FALSE;
 }
 
@@ -1758,8 +1751,8 @@ PHP_FUNCTION(mdbm_isowned) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1775,7 +1768,7 @@ PHP_FUNCTION(mdbm_isowned) {
         RETURN_TRUE;
     }
  
-    php_error_docref(NULL TSRMLS_CC, E_ERROR, "failed to check the return value of mdbm_isowned");
+    ERROR_DOCREF(E_ERROR, "failed to check the return value of mdbm_isowned");
     RETURN_FALSE;
 }
 
@@ -1787,8 +1780,8 @@ PHP_FUNCTION(mdbm_lock_reset) {
 
     char fn[PATH_MAX] = {0x00};
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &pdbfn, &dbfn_len) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("s", &pdbfn, &dbfn_len) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1797,7 +1790,7 @@ PHP_FUNCTION(mdbm_lock_reset) {
 
     strncpy(fn, pdbfn, dbfn_len);
     if (fn == NULL) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory");
+        ERROR_DOCREF(E_ERROR, "Out of memory while allocating memory");
         RETURN_TRUE;
     }
 
@@ -1819,8 +1812,8 @@ PHP_FUNCTION(mdbm_delete_lockfiles) {
 
     char fn[PATH_MAX] = {0x00};
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &pdbfn, &dbfn_len) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("s", &pdbfn, &dbfn_len) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1829,7 +1822,7 @@ PHP_FUNCTION(mdbm_delete_lockfiles) {
 
     strncpy(fn, pdbfn, dbfn_len);
     if (fn == NULL) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Out of memory while allocating memory");
+        ERROR_DOCREF(E_ERROR, "Out of memory while allocating memory");
         RETURN_TRUE;
     }
 
@@ -1847,8 +1840,8 @@ PHP_FUNCTION(mdbm_preload) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1869,8 +1862,8 @@ PHP_FUNCTION(mdbm_get_errno) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1891,8 +1884,8 @@ PHP_FUNCTION(mdbm_limit_dir_size) {
     int id = -1;
     _ZEND_LONG pages = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &pages) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rl", &mdbm_link_index, &pages) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1916,8 +1909,8 @@ PHP_FUNCTION(mdbm_get_version) {
     int id = -1;
     uint32_t rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1938,8 +1931,8 @@ PHP_FUNCTION(mdbm_get_size) {
     int id = -1;
     uint64_t rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1959,8 +1952,8 @@ PHP_FUNCTION(mdbm_get_page_size) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -1980,8 +1973,8 @@ PHP_FUNCTION(mdbm_get_hash) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -2004,8 +1997,8 @@ PHP_FUNCTION(mdbm_set_hash) {
 
     _ZEND_LONG hash = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &hash) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rl", &mdbm_link_index, &hash) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -2016,7 +2009,7 @@ PHP_FUNCTION(mdbm_set_hash) {
     _FETCH_RES(mdbm_link_index, id);
 
     if (hash < MDBM_HASH_CRC32 || hash > MDBM_MAX_HASH) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : hash(=%ld)", hash);
+        ERROR_DOCREF(E_ERROR, "Error - there was a not support parameter value : hash(=%ld)", hash);
         RETURN_FALSE;
     }
 
@@ -2034,8 +2027,8 @@ PHP_FUNCTION(mdbm_get_limit_size) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -2057,8 +2050,8 @@ PHP_FUNCTION(mdbm_setspillsize) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &size) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rl", &mdbm_link_index, &size) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -2082,8 +2075,8 @@ PHP_FUNCTION(mdbm_get_alignment) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -2106,8 +2099,8 @@ PHP_FUNCTION(mdbm_set_alignment) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &align) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rl", &mdbm_link_index, &align) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -2118,7 +2111,7 @@ PHP_FUNCTION(mdbm_set_alignment) {
             && align != MDBM_ALIGN_16_BITS
             && align != MDBM_ALIGN_32_BITS
             && align != MDBM_ALIGN_64_BITS) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "The parameter value of `align` is less than the minimum allowed value of 0");
+        ERROR_DOCREF(E_ERROR, "The parameter value of `align` is less than the minimum allowed value of 0");
         RETURN_FALSE;
     }
 
@@ -2139,13 +2132,13 @@ PHP_FUNCTION(mdbm_compress_tree) {
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
     if (mdbm_link_index == NULL) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "not found the mdbm resource");
+        ERROR_DOCREF(E_ERROR, "not found the mdbm resource");
         RETURN_FALSE;
     }
 
@@ -2174,7 +2167,7 @@ PHP_FUNCTION(mdbm_store) {
     char *psetkey = NULL;
     char *psetval = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss|l", &mdbm_link_index, &pkey, &key_len, &pval, &val_len, &flags) == FAILURE) {
+    if (PARSE_PARAMS("rss|l", &mdbm_link_index, &pkey, &key_len, &pval, &val_len, &flags) == FAILURE) {
         RETURN_FALSE;
     }
 
@@ -2220,7 +2213,7 @@ PHP_FUNCTION(mdbm_store) {
     }
 
     if (rv == 1 && flags == (flags | MDBM_INSERT)) { //the key already exists
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "the key(=%s) already exists", pkey);
+        ERROR_DOCREF(E_ERROR, "the key(=%s) already exists", pkey);
         RETURN_FALSE;
     }
 
@@ -2248,7 +2241,7 @@ PHP_FUNCTION(mdbm_store_r) {
     char *psetkey = NULL;
     char *psetval = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss|l", &mdbm_link_index, &pkey, &key_len, &pval, &val_len, &flags) == FAILURE) {
+    if (PARSE_PARAMS("rss|l", &mdbm_link_index, &pkey, &key_len, &pval, &val_len, &flags) == FAILURE) {
         RETURN_FALSE;
     }
 
@@ -2294,7 +2287,7 @@ PHP_FUNCTION(mdbm_store_r) {
     }
 
     if (rv == 1 && flags == (flags | MDBM_INSERT)) { //the key already exists
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "the key(=%s) already exists", pkey);
+        ERROR_DOCREF(E_ERROR, "the key(=%s) already exists", pkey);
         RETURN_FALSE;
     }
 
@@ -2316,8 +2309,8 @@ PHP_FUNCTION(mdbm_fetch) {
 
     _ZEND_STRING_PTR pretval = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -2364,8 +2357,8 @@ PHP_FUNCTION(mdbm_fetch_r) {
 
     _ZEND_STRING_PTR pretval = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s) with key");
+    if (PARSE_PARAMS("rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s) with key");
         RETURN_FALSE;
     }
 
@@ -2425,8 +2418,8 @@ PHP_FUNCTION(mdbm_fetch_dup_r) {
 
     _ZEND_STRING_PTR pretval = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s) with key");
+    if (PARSE_PARAMS("rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s) with key");
         RETURN_FALSE;
     }
 
@@ -2488,8 +2481,8 @@ PHP_FUNCTION(mdbm_fetch_info) {
 
     _ZEND_STRING_PTR pretval = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s) with key");
+    if (PARSE_PARAMS("rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s) with key");
         RETURN_FALSE;
     }
 
@@ -2548,8 +2541,8 @@ PHP_FUNCTION(mdbm_delete) {
     char *pkey = NULL;
     _ZEND_STR_LEN key_len = 0;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -2586,8 +2579,8 @@ PHP_FUNCTION(mdbm_delete_r) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &mdbm_link_index, &arr) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s) with iter");
+    if (PARSE_PARAMS("ra", &mdbm_link_index, &arr) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s) with iter");
         RETURN_FALSE;
     }
 
@@ -2622,8 +2615,8 @@ PHP_FUNCTION(mdbm_first) {
     _ZEND_STRING_PTR pretkey = NULL;
     _ZEND_STRING_PTR pretval = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -2663,8 +2656,8 @@ PHP_FUNCTION(mdbm_next) {
     _ZEND_STRING_PTR pretkey = NULL;
     _ZEND_STRING_PTR pretval = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -2703,8 +2696,8 @@ PHP_FUNCTION(mdbm_firstkey) {
     datum key = {0x00,};
     _ZEND_STRING_PTR pretkey = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -2735,8 +2728,8 @@ PHP_FUNCTION(mdbm_nextkey) {
     datum val = {0x00,};
     _ZEND_STRING_PTR pretval = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -2763,8 +2756,8 @@ PHP_FUNCTION(mdbm_reset_global_iter) {
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -2782,8 +2775,8 @@ PHP_FUNCTION(mdbm_get_global_iter) {
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -2803,8 +2796,8 @@ PHP_FUNCTION(mdbm_get_iter) {
     int argc = ZEND_NUM_ARGS();
     
 
-    if (zend_parse_parameters(argc TSRMLS_CC, "|ll", &in_pageno, &in_next) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Failed to parsing the parameters");
+    if (PARSE_PARAMS("|ll", &in_pageno, &in_next) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Failed to parsing the parameters");
         RETURN_FALSE;
     }
 
@@ -2839,8 +2832,8 @@ PHP_FUNCTION(mdbm_first_r) {
     _ZEND_STRING_PTR pretkey = NULL;
     _ZEND_STRING_PTR pretval = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|a", &mdbm_link_index, &arr) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r|a", &mdbm_link_index, &arr) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -2894,8 +2887,8 @@ PHP_FUNCTION(mdbm_next_r) {
     _ZEND_STRING_PTR pretval = NULL;
 
     
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|a", &mdbm_link_index, &arr) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r|a", &mdbm_link_index, &arr) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -2950,8 +2943,8 @@ PHP_FUNCTION(mdbm_firstkey_r) {
     datum key = {0x00,};
     _ZEND_STRING_PTR pretkey = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|a", &mdbm_link_index, &arr) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r|a", &mdbm_link_index, &arr) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -2998,8 +2991,8 @@ PHP_FUNCTION(mdbm_nextkey_r) {
     datum key = {0x00,};
     _ZEND_STRING_PTR pretkey = NULL;
     
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|a", &mdbm_link_index, &arr) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r|a", &mdbm_link_index, &arr) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3040,8 +3033,8 @@ PHP_FUNCTION(mdbm_count_records) {
     int id = -1;
     uint64_t rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3061,8 +3054,8 @@ PHP_FUNCTION(mdbm_count_pages) {
     int id = -1;
     uint64_t rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3084,8 +3077,8 @@ PHP_FUNCTION(mdbm_set_cachemode) {
 
     _ZEND_LONG flag = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &flag) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rl", &mdbm_link_index, &flag) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3093,7 +3086,7 @@ PHP_FUNCTION(mdbm_set_cachemode) {
     CHECK_OVERFLOW(flag, INT_MIN, INT_MAX);
 
     if (flag < MDBM_CACHEMODE_NONE || flag > MDBM_CACHEMODE_MAX) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : flag(=%ld)", flag);
+        ERROR_DOCREF(E_ERROR, "Error - there was a not support parameter value : flag(=%ld)", flag);
         RETURN_FALSE;
     }
 
@@ -3114,8 +3107,8 @@ PHP_FUNCTION(mdbm_get_cachemode) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3140,8 +3133,8 @@ PHP_FUNCTION(mdbm_get_cachemode_name) {
     _ZEND_STRING_PTR pretval = NULL;
     int retval_len = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &cacheno) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("l", &cacheno) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3170,8 +3163,8 @@ PHP_FUNCTION(mdbm_clean) {
     _ZEND_LONG pagenum = -1;
     //_ZEND_LONG flags = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &pagenum) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rl", &mdbm_link_index, &pagenum) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3198,8 +3191,8 @@ PHP_FUNCTION(mdbm_check) {
     _ZEND_LONG level = -1;
     zend_bool verbose = FALSE;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl|b", &mdbm_link_index, &level, &verbose) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rl|b", &mdbm_link_index, &level, &verbose) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3207,12 +3200,12 @@ PHP_FUNCTION(mdbm_check) {
     CHECK_OVERFLOW(level, INT_MIN, INT_MAX);
 
     if (level < MDBM_CHECK_HEADER || level > MDBM_CHECK_ALL) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : level(=%ld)", level);
+        ERROR_DOCREF(E_ERROR, "Error - there was a not support parameter value : level(=%ld)", level);
         RETURN_FALSE;
     }
 
     if ((int)verbose < 0 || (int)verbose > 1 ) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : verbose(=%d)", (int)verbose);
+        ERROR_DOCREF(E_ERROR, "Error - there was a not support parameter value : verbose(=%d)", (int)verbose);
         RETURN_FALSE;
     }
 
@@ -3234,8 +3227,8 @@ PHP_FUNCTION(mdbm_chk_all_page) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3261,8 +3254,8 @@ PHP_FUNCTION(mdbm_chk_page) {
 
     _ZEND_LONG pagenum = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &pagenum) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rl", &mdbm_link_index, &pagenum) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3288,8 +3281,8 @@ PHP_FUNCTION(mdbm_protect) {
 
     _ZEND_LONG protect = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &protect) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rl", &mdbm_link_index, &protect) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3297,7 +3290,7 @@ PHP_FUNCTION(mdbm_protect) {
     CHECK_OVERFLOW(protect, INT_MIN, INT_MAX);
 
     if (protect < MDBM_PROT_NONE || protect > MDBM_PROT_ACCESS) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : protect(=%ld)", protect);
+        ERROR_DOCREF(E_ERROR, "Error - there was a not support parameter value : protect(=%ld)", protect);
         RETURN_FALSE;
     }
 
@@ -3318,8 +3311,8 @@ PHP_FUNCTION(mdbm_lock_pages) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3340,8 +3333,8 @@ PHP_FUNCTION(mdbm_unlock_pages) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3366,8 +3359,8 @@ PHP_FUNCTION(mdbm_get_hash_value) {
     _ZEND_LONG hfc = -1;
     
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl", &pkey, &key_len, &hfc) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("sl", &pkey, &key_len, &hfc) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3378,12 +3371,12 @@ PHP_FUNCTION(mdbm_get_hash_value) {
     CHECK_OVERFLOW(hfc, INT_MIN, INT_MAX);
 
     if (hfc < MDBM_HASH_CRC32 || hfc > MDBM_MAX_HASH) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : hash function code(=%d)", (int)hfc);
+        ERROR_DOCREF(E_ERROR, "Error - there was a not support parameter value : hash function code(=%d)", (int)hfc);
         RETURN_FALSE;
     }
 
     if (key_len < 1) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "required! hashValue(length=%d)", (int)key_len);
+        ERROR_DOCREF(E_ERROR, "required! hashValue(length=%d)", (int)key_len);
         RETURN_FALSE;
     }
 
@@ -3413,8 +3406,8 @@ PHP_FUNCTION(mdbm_get_page) {
     _ZEND_STR_LEN key_len = 0;
 
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rs", &mdbm_link_index, &pkey, &key_len) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3449,8 +3442,8 @@ PHP_FUNCTION(mdbm_get_magic_number) {
     int rv = -1;
     uint32_t magic = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3475,8 +3468,8 @@ PHP_FUNCTION(mdbm_set_window_size) {
     int id = -1;
     _ZEND_LONG wsize = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &wsize) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rl", &mdbm_link_index, &wsize) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3501,8 +3494,8 @@ PHP_FUNCTION(mdbm_enable_stat_operations) {
     int id = -1;
     _ZEND_LONG flags = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &flags) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rl", &mdbm_link_index, &flags) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3510,7 +3503,7 @@ PHP_FUNCTION(mdbm_enable_stat_operations) {
     CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
 
     if (flags > (MDBM_STATS_BASIC | MDBM_STATS_TIMED)) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : flags(=%ld)", flags);
+        ERROR_DOCREF(E_ERROR, "Error - there was a not support parameter value : flags(=%ld)", flags);
         RETURN_FALSE;
     }
 
@@ -3535,8 +3528,8 @@ PHP_FUNCTION(mdbm_reset_stat_operations) {
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3544,7 +3537,7 @@ PHP_FUNCTION(mdbm_reset_stat_operations) {
     _FETCH_RES(mdbm_link_index, id);
 
     if (mdbm_link->enable_stat != 1) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - Required! call to mdbm_reset_stat_operations aftre mdbm_enable_stat_operations.");
+        ERROR_DOCREF(E_ERROR, "Error - Required! call to mdbm_reset_stat_operations aftre mdbm_enable_stat_operations.");
         RETURN_FALSE;
     }
 
@@ -3562,8 +3555,8 @@ PHP_FUNCTION(mdbm_set_stat_time_func) {
     int id = -1;
     _ZEND_LONG flags = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &flags) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rl", &mdbm_link_index, &flags) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3571,7 +3564,7 @@ PHP_FUNCTION(mdbm_set_stat_time_func) {
     CHECK_OVERFLOW(flags, INT_MIN, INT_MAX);
 
     if (flags != MDBM_CLOCK_TSC && flags != MDBM_CLOCK_STANDARD) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : flags(=%ld)", flags);
+        ERROR_DOCREF(E_ERROR, "Error - there was a not support parameter value : flags(=%ld)", flags);
         RETURN_FALSE;
     }
 
@@ -3600,8 +3593,8 @@ PHP_FUNCTION(mdbm_get_stat_time) {
     _ZEND_LONG type = -1;
     _ZEND_STRING_PTR pretval = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &type) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rl", &mdbm_link_index, &type) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3609,7 +3602,7 @@ PHP_FUNCTION(mdbm_get_stat_time) {
     CHECK_OVERFLOW(type, INT_MIN, INT_MAX);
 
     if (type != MDBM_STAT_TYPE_FETCH && type != MDBM_STAT_TYPE_STORE && type != MDBM_STAT_TYPE_DELETE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : type(=%ld)", type);
+        ERROR_DOCREF(E_ERROR, "Error - there was a not support parameter value : type(=%ld)", type);
         RETURN_FALSE;
     }
 
@@ -3639,8 +3632,8 @@ PHP_FUNCTION(mdbm_get_stat_counter) {
     int id = -1;
     _ZEND_LONG type = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &type) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rl", &mdbm_link_index, &type) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3648,7 +3641,7 @@ PHP_FUNCTION(mdbm_get_stat_counter) {
     CHECK_OVERFLOW(type, INT_MIN, INT_MAX);
 
     if (type != MDBM_STAT_TYPE_FETCH && type != MDBM_STAT_TYPE_STORE && type != MDBM_STAT_TYPE_DELETE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : type(=%ld)", type);
+        ERROR_DOCREF(E_ERROR, "Error - there was a not support parameter value : type(=%ld)", type);
         RETURN_FALSE;
     }
 
@@ -3672,8 +3665,8 @@ PHP_FUNCTION(mdbm_stat_all_page) {
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3694,8 +3687,8 @@ PHP_FUNCTION(mdbm_dump_all_page) {
     php_mdbm_open *mdbm_link = NULL;
     int id = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3716,8 +3709,8 @@ PHP_FUNCTION(mdbm_dump_page) {
     int id = -1;
     _ZEND_LONG pno = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &pno) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rl", &mdbm_link_index, &pno) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3742,8 +3735,8 @@ PHP_FUNCTION(mdbm_get_stats) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3789,8 +3782,8 @@ PHP_FUNCTION(mdbm_get_db_info) {
     _ZEND_STRING_PTR pretval = NULL;
     size_t retval_len = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3805,7 +3798,7 @@ PHP_FUNCTION(mdbm_get_db_info) {
     }
 
     if (strlen(info.db_hash_funcname) > DEFAULT_BUF_SIZE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Panic - buffer size too small..(buf=%d, real=%ld)", DEFAULT_BUF_SIZE, strlen(info.db_hash_funcname));
+        ERROR_DOCREF(E_ERROR, "Panic - buffer size too small..(buf=%d, real=%ld)", DEFAULT_BUF_SIZE, strlen(info.db_hash_funcname));
         RETURN_FALSE;
     }
 
@@ -3839,8 +3832,8 @@ PHP_FUNCTION(mdbm_get_window_stats) {
     int id = -1;
     int rv = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &mdbm_link_index) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("r", &mdbm_link_index) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
@@ -3899,13 +3892,13 @@ PHP_FUNCTION(mdbm_get_db_stats) {
     int rv = -1;
     int i = 0;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &flags) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rl", &mdbm_link_index, &flags) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
     if (flags != MDBM_STAT_NOLOCK && flags != MDBM_ITERATE_NOLOCK) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - there was a not support parameter value : flags(=%ld)", flags);
+        ERROR_DOCREF(E_ERROR, "Error - there was a not support parameter value : flags(=%ld)", flags);
         RETURN_FALSE;
     }
 
@@ -4028,8 +4021,8 @@ PHP_FUNCTION(mdbm_limit_size_v3) {
     int id = -1;
     _ZEND_LONG limitsize = -1;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &mdbm_link_index, &limitsize) == FAILURE) {
-        php_error_docref(NULL TSRMLS_CC, E_ERROR, "Error - There was a missing parameter(s)");
+    if (PARSE_PARAMS("rl", &mdbm_link_index, &limitsize) == FAILURE) {
+        ERROR_DOCREF(E_ERROR, "Error - There was a missing parameter(s)");
         RETURN_FALSE;
     }
 
