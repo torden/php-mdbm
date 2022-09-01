@@ -23,6 +23,5 @@ jobs:
         sudo ldconfig -v
         php -v
         phpize
-        ./configure --with-php-config=/usr/bin/php-config --with-mdbm=/usr/local/mdbm/
-        make
-        
+        ./configure --with-php-config=`which php-config` --with-mdbm=/usr/local/mdbm/
+        find /usr/local/mdbm/
